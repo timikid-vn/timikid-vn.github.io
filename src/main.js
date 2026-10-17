@@ -4,6 +4,8 @@ import { calculate, fmtVND, parseVND, fmtThousands } from './calc.js';
 import { shopeeCategories } from './shopeeCategories.js';
 import { tiktokCategories } from './tiktokCategories.js';
 import { buildTree, walk, leaves, searchLeaves } from './categoryTree.js';
+import { matchCategory } from './categoryMatch.js';
+import { initShopConnect } from './shopConnect.js';
 
 const KEY = 'spc-state-v9'; // v2: ngành Shopee đầy đủ từ PDF, bỏ Freeship Xtra
 const $ = (id) => document.getElementById(id);
@@ -200,3 +202,15 @@ document.addEventListener('change', (e) => {
 renderStatic(); renderCosts(); update();
 // Ẩn thanh lãi/lỗ dính đáy khi khối kết quả đã hiện trên màn hình
 if ('IntersectionObserver' in window) new IntersectionObserver(([e]) => $('mbar').classList.toggle('hide', e.isIntersecting), { threshold: 0.3 }).observe($('result'));
+
+// ---- Chọn shop (kết nối sàn): đặt sàn + Mall, điền giá & ngành từ sản phẩm
+initShopConnect({
+  apply({ platform, mall, price, categoryPath }) {
+    S.platform = platform; S.shopType = mall ? 1 : 0; PICK.mobileDepth = null;
+    let matched = null;
+    if (categoryPath?.length) { const p = matchCategory(tree(), categoryPath); matched = !!p; if (p) setPath(p); }
+    if (price != null) $('price').value = fmtThousands(String(Math.round(price)));
+    renderStatic(); update();
+    return { matched };
+  },
+});

@@ -1,0 +1,18 @@
+# timikid-auth: đăng nhập dùng chung cho mọi app timikid-vn (email + mật khẩu, admin duyệt).
+# Bí mật (npx wrangler secret put <TÊN>, không ghi vào file):
+#   AUTH_SIGNING_JWK  — khóa riêng ES256 (JWK) để ký phiên; khóa công khai ở /.well-known/jwks.json
+#   ADMIN_PASSWORD    — mật khẩu admin (anh Duy tự nhập qua form bảo mật). Chưa đặt → admin không đăng nhập được.
+name = "timikid-auth"
+main = "src/index.js"
+compatibility_date = "2026-10-01"
+workers_dev = true
+account_id = "221d1e5c092be128eec2e830e6652c06"
+
+[vars]
+ADMIN_EMAIL = "duylinh30190@gmail.com"
+AUTH_ISSUER = "https://timikid-auth.timikid-vn.workers.dev"
+# EXTRA_ORIGINS = "http://localhost:5173"   # thêm origin khi phát triển
+
+[[kv_namespaces]]
+binding = "USERS"
+id = "78577348e7e048739ab72d6b00fcabe0"

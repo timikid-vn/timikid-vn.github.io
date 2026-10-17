@@ -1,0 +1,30 @@
+# Cloudflare Worker cho tính năng "Chọn shop".
+# Đã deploy: https://timikid-shop-connect.timikid-vn.workers.dev
+# Bí mật nhập bằng: npx wrangler secret put <TÊN> (không ghi vào file này).
+#   TOKEN_ENC_KEY (32 byte base64),
+#   SHOPEE_PARTNER_KEY, TIKTOK_APP_SECRET
+# Đăng nhập: tài khoản chung timikid-auth (xác minh JWT bằng khóa công khai qua service binding AUTH).
+name = "timikid-shop-connect"
+main = "src/index.js"
+workers_dev = true
+account_id = "221d1e5c092be128eec2e830e6652c06"
+compatibility_date = "2026-10-01"
+
+[vars]
+ALLOWED_ORIGIN = "https://timikid-vn.github.io"
+FRONTEND_URL = "https://timikid-vn.github.io/"
+SHOPEE_PARTNER_ID = "2034752"
+TIKTOK_APP_KEY = "6k3gnffonvbtq"
+TIKTOK_SERVICE_ID = "7643091412851197713"   # Service ID (link ủy quyền Custom App)
+SHOPEE_REDIRECT_URL = "https://n8n.timikid.com/webhook/shopee-callback"   # relay n8n (workflow "Shopee OAuth relay → timikid-shop-connect") 302 nguyên query → /oauth/shopee/callback
+AUTH_ISSUER = "https://timikid-auth.timikid-vn.workers.dev"
+# SHOPEE_HOST = "https://openplatform.sandbox.test-stable.shopee.sg"   # bỏ # để dùng sandbox Shopee
+
+[[kv_namespaces]]
+binding = "SHOPS"
+id = "2e380072fdc1497482790229486dea14"
+
+# Gọi timikid-auth nội bộ (Worker gọi Worker cùng tài khoản qua workers.dev không được phép)
+[[services]]
+binding = "AUTH"
+service = "timikid-auth"

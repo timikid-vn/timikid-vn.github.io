@@ -1,0 +1,33 @@
+{
+  "name": "Shopee OAuth relay → timikid-shop-connect",
+  "nodes": [
+    {
+      "parameters": { "httpMethod": "GET", "path": "shopee-callback", "responseMode": "responseNode", "options": {} },
+      "id": "a1f0c0de-0001-4000-8000-000000000001",
+      "name": "Shopee callback",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [0, 0],
+      "webhookId": "5b0e8c3a-6d1f-4c52-9a7e-0123456789ab"
+    },
+    {
+      "parameters": {
+        "respondWith": "noData",
+        "options": {
+          "responseCode": 302,
+          "responseHeaders": { "entries": [
+            { "name": "Location", "value": "={{ 'https://timikid-shop-connect.timikid-vn.workers.dev/oauth/shopee/callback?' + Object.entries($json.query || {}).map(([k, v]) => encodeURIComponent(k) + '=' + encodeURIComponent(Array.isArray(v) ? v[0] : String(v))).join('&') }}" },
+            { "name": "Cache-Control", "value": "no-store" }
+          ] }
+        }
+      },
+      "id": "a1f0c0de-0002-4000-8000-000000000002",
+      "name": "302 → Worker",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [260, 0]
+    }
+  ],
+  "connections": { "Shopee callback": { "main": [[{ "node": "302 → Worker", "type": "main", "index": 0 }]] } },
+  "settings": { "executionOrder": "v1", "saveDataSuccessExecution": "none" }
+}
