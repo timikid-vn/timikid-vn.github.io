@@ -2,6 +2,7 @@
 // Token của sàn không bao giờ tới trình duyệt — ở đây chỉ giữ phiên đăng nhập chủ shop.
 const API = (import.meta.env?.VITE_SHOP_API || '').replace(/\/+$/, '');
 import { createAuth } from '../public/auth/timikid-auth.js';
+import { choosePrice, priceRange } from './productPrice.js';
 const auth = createAuth({ url: import.meta.env?.VITE_AUTH_URL || undefined, app: 'shop-connect' });
 const esc = (t) => String(t ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/"/g, '&quot;');
 const fmt = (n) => (n == null ? '—' : Math.round(n).toLocaleString('vi-VN') + ' ₫');
@@ -11,7 +12,7 @@ const PNAME = { shopee: 'Shopee', tiktok: 'TikTok Shop' };
 export function initShopConnect({ apply }) {
   const dlg = document.getElementById('shopDialog');
   const body = document.getElementById('shopBody');
-  let status = null, view = 'shops', curShop = null, products = [], next = null, msg = '';
+  let status = null, view = 'shops', curShop = null, products = [], next = null, msg = '', query = '', detail = null, loading = false, reqId = 0, io = null;
   let authTab = 'login', noAccess = false;
   async function api(path, opt = {}) {
     const t = await auth.getAccessToken();
@@ -44,29 +45,69 @@ export function initShopConnect({ apply }) {
     set('<p class="muted">Đang tải danh sách shop…</p>');
     try {
       const { shops } = await api('/api/shops');
-      const btn = (p) => `<button type="button" class="sc-connect" data-connect="${p}" ${status[p] ? '' : 'disabled title="Chờ sàn duyệt app"'}>${ICON[p]}<span>Kết nối ${PNAME[p]}</span>${status[p] ? '' : '<small>chờ duyệt</small>'}</button>`;
-      set(`${shops.length ? `<div class="sc-list">${shops.map((s) => `<div class="sc-shop"><button type="button" class="sc-pick" data-shop="${esc(s.platform)}|${esc(s.id)}">${ICON[s.platform]}<span><b>${esc(s.name)}</b><small>${PNAME[s.platform]} · ${s.mall ? 'Mall' : 'Shop thường'}</small></span><i>›</i></button>
+      const off = (p) => (p === 'tiktok' ? 'Tạm chưa hỗ trợ' : status[p] ? '' : 'chờ duyệt');
+      const btn = (p) => `<button type="button" class="sc-connect" data-connect="${p}" ${off(p) ? `disabled title="${off(p)}"` : ''}>${ICON[p]}<span>Kết nối ${PNAME[p]}</span>${off(p) ? `<small>${off(p)}</small>` : ''}</button>`;
+      set(`${shops.length ? `<div class="sc-list">${shops.map((s) => `<div class="sc-shop"><button type="button" class="sc-pick" data-shop="${esc(s.platform)}|${esc(s.id)}" ${s.platform === 'tiktok' ? 'disabled title="Tạm chưa hỗ trợ"' : ''}>${ICON[s.platform]}<span><b>${esc(s.name)}</b><small>${PNAME[s.platform]} · ${s.mall ? 'Mall' : 'Shop thường'}${s.platform === 'tiktok' ? ' · tạm chưa hỗ trợ' : ''}</small></span><i>›</i></button>
           <label class="sc-mall" title="Shop Mall?"><span class="switch"><input type="checkbox" data-mall="${esc(s.platform)}|${esc(s.id)}" ${s.mall ? 'checked' : ''}/><span></span></span>Mall</label>
           <button type="button" class="sc-x" data-disc="${esc(s.platform)}|${esc(s.id)}" title="Ngắt kết nối" aria-label="Ngắt kết nối">✕</button></div>`).join('')}</div>` : '<p class="muted">Chưa có shop nào được kết nối.</p>'}
         <div class="sc-actions">${btn('shopee')}${btn('tiktok')}</div>
-        <p class="muted sc-foot">Bạn sẽ được chuyển sang trang ủy quyền chính thức của sàn. <button type="button" class="link" id="scLogout">Đăng xuất ${esc(auth.user?.email || '')}</button></p>`);
+        <p class="muted sc-foot">TikTok Shop: tạm chưa hỗ trợ kết nối — vẫn tính phí TikTok bình thường bằng tay. Bạn sẽ được chuyển sang trang ủy quyền chính thức của sàn. <button type="button" class="link" id="scLogout">Đăng xuất ${esc(auth.user?.email || '')}</button></p>`);
     } catch (e) { if (e.auth) return render(); set(`<p class="sc-msg err">${esc(e.message)}</p>`); }
   }
 
+  // ---- Chọn sản phẩm (Shopee): tìm theo tên/SKU trên Shopee, tải dần khi cuộn
+  const prodHead = () => `<div class="sc-head"><button type="button" class="link" id="scBack">‹ Shop</button><b>${esc(curShop.name)}</b><span class="badge ${curShop.mall ? 'mall' : ''}">${curShop.mall ? 'Mall' : 'Thường'}</span></div>
+    <div class="sc-search"><input type="search" id="scFilter" placeholder="Tìm tên sản phẩm hoặc SKU…" autocomplete="off" value="${esc(query)}" enterkeyhint="search"/></div>`;
   async function renderProducts(append = false) {
-    const head = `<div class="sc-head"><button type="button" class="link" id="scBack">‹ Shop</button><b>${esc(curShop.name)}</b></div><input type="search" id="scFilter" placeholder="🔍 Lọc sản phẩm theo tên..." autocomplete="off"/>`;
-    if (!append) { products = []; next = null; set(head + '<p class="muted">Đang tải sản phẩm…</p>'); }
-    try {
-      const j = await api(`/api/shops/${curShop.platform}/${curShop.id}/products${next != null ? '?next=' + encodeURIComponent(next) : ''}`);
-      products = products.concat(j.items || []); next = j.next;
-      set(head + '<div class="sc-prods" id="scProds"></div>' + (next != null ? '<button type="button" class="link" id="scMore">Tải thêm…</button>' : ''));
-      drawProducts();
-    } catch (e) { if (e.auth) return render(); set(head + `<p class="sc-msg err">${esc(e.message)}</p>`); }
+    if (!append) { products = []; next = null; set(prodHead() + '<div class="sc-prods" id="scProds"><p class="muted sc-load">Đang tải sản phẩm…</p></div>'); }
+    await loadMore();
   }
+  async function loadMore() {
+    if (loading) return;
+    loading = true; const my = ++reqId;
+    try {
+      const qs = new URLSearchParams(); if (query) qs.set('q', query); if (next != null) qs.set('next', next);
+      const j = await api(`/api/shops/${curShop.platform}/${curShop.id}/products?${qs}`);
+      if (my !== reqId) return; // đã có tìm kiếm mới hơn
+      products = products.concat(j.items || []); next = j.next ?? null;
+      drawProducts();
+    } catch (e) {
+      if (e.auth) return render();
+      const box = document.getElementById('scProds');
+      if (box) box.innerHTML = errBox(e.message) + (products.length ? '' : '');
+    } finally { if (my === reqId) loading = false; }
+  }
+  const errBox = (m) => `<div class="sc-msg err">${esc(m)}${/kết nối lại/i.test(m) ? ' <button type="button" class="link" data-connect="shopee">Kết nối lại</button>' : ''} <button type="button" class="link" id="scRetry">Thử lại</button></div>`;
+  const priceHtml = (p) => {
+    if (p.hasModel) return '<span class="sc-pv">Nhiều phân loại ›</span>';
+    if (p.price == null) return '<span class="sc-pv muted">—</span>';
+    return `<span class="sc-pv">${p.promo ? `<s>${fmt(p.originalPrice)}</s>` : ''}<b>${fmt(p.price)}</b></span>`;
+  };
   function drawProducts() {
-    const q = (document.getElementById('scFilter')?.value || '').toLowerCase();
-    const list = products.filter((p) => !q || p.name.toLowerCase().includes(q));
-    document.getElementById('scProds').innerHTML = list.length ? list.map((p) => `<button type="button" class="sc-prod" data-prod="${esc(p.id)}"><span>${esc(p.name)}</span><b>${p.price != null ? fmt(p.price) : 'nhiều giá'}</b></button>`).join('') : '<p class="muted">Không có sản phẩm.</p>';
+    const box = document.getElementById('scProds'); if (!box) return;
+    box.innerHTML = (products.length ? products.map((p) => `<button type="button" class="sc-prod" data-prod="${esc(p.id)}">
+        ${p.image ? `<img src="${esc(p.image)}" alt="" loading="lazy" width="44" height="44"/>` : '<span class="sc-noimg"></span>'}
+        <span class="sc-pn"><span class="sc-name">${esc(p.name)}</span><small>${p.sku ? 'SKU ' + esc(p.sku) : ''}${p.statusText ? ` <em class="tag">${esc(p.statusText)}</em>` : ''}${p.stock === 0 ? ' <em class="tag warn">Hết hàng</em>' : ''}${p.promo ? ' <em class="tag ok">KM</em>' : ''}</small></span>
+        ${priceHtml(p)}</button>`).join('') : `<p class="muted sc-load">${query ? 'Không tìm thấy sản phẩm khớp “' + esc(query) + '”.' : 'Shop chưa có sản phẩm.'}</p>`)
+      + (next != null ? '<div id="scSentinel" class="sc-load muted">Đang tải thêm…</div>' : '');
+    const sen = document.getElementById('scSentinel');
+    io?.disconnect();
+    if (sen && 'IntersectionObserver' in window) { io = new IntersectionObserver(([en]) => en.isIntersecting && loadMore(), { root: box, rootMargin: '200px' }); io.observe(sen); }
+    else if (sen) sen.outerHTML = '<button type="button" class="link" id="scMore">Tải thêm…</button>';
+  }
+  function renderModels() {
+    const p = detail, r = priceRange(p.models);
+    set(`<div class="sc-head"><button type="button" class="link" id="scBackList">‹ Sản phẩm</button><b>Chọn phân loại</b></div>
+      <div class="sc-pd">${p.image ? `<img src="${esc(p.image)}" alt="" width="56" height="56"/>` : ''}<div><b>${esc(p.name)}</b><small class="muted">${r ? (r.min === r.max ? fmt(r.min) : fmt(r.min) + ' – ' + fmt(r.max)) : ''} · ${p.models.length} phân loại${p.statusText ? ' · ' + esc(p.statusText) : ''}</small></div></div>
+      <div class="sc-prods">${p.models.map((m) => `<button type="button" class="sc-prod sc-model" data-model="${esc(m.id)}" ${m.price == null ? 'disabled' : ''}>
+        <span class="sc-pn"><span class="sc-name">${esc(m.name)}</span><small>${m.sku ? 'SKU ' + esc(m.sku) + ' · ' : ''}${m.stock === 0 ? '<em class="tag warn">Hết hàng</em>' : m.stock != null ? 'Còn ' + m.stock : ''}${m.promo ? ` <em class="tag ok">−${m.discountPct}%</em>` : ''}</small></span>
+        <span class="sc-pv">${m.promo ? `<s>${fmt(m.originalPrice)}</s>` : ''}<b>${fmt(m.price)}</b></span></button>`).join('')}</div>`);
+  }
+  function choose(model) {
+    const c = choosePrice(detail, model);
+    const res = apply({ platform: curShop.platform, mall: !!curShop.mall, price: c.price, categoryPath: detail.categoryPath, productName: detail.name, modelName: model?.name || '', priceInfo: c });
+    dlg.close();
+    return res;
   }
 
   dlg.addEventListener('click', async (e) => {
@@ -76,7 +117,10 @@ export function initShopConnect({ apply }) {
     if (b.id === 'scLogout') { await auth.logout(); noAccess = false; return render(); }
     if (b.dataset.tab) { authTab = b.dataset.tab; return render(); }
     if (b.id === 'scBack') { view = 'shops'; return render(); }
-    if (b.id === 'scMore') return renderProducts(true);
+    if (b.id === 'scMore') return loadMore();
+    if (b.id === 'scRetry') return renderProducts();
+    if (b.id === 'scBackList') { view = 'products'; set(prodHead() + '<div class="sc-prods" id="scProds"></div>'); return drawProducts(); }
+    if (b.dataset.model) { const m = detail.models.find((x) => x.id === b.dataset.model); return choose(m); }
     if (b.dataset.connect) {
       try { const { url } = await api(`/api/oauth/${b.dataset.connect}/url`, { method: 'POST' }); location.href = url; } catch (err) { msg = err.message; render(); }
     }
@@ -91,16 +135,20 @@ export function initShopConnect({ apply }) {
       const { shops } = await api('/api/shops');
       curShop = shops.find((s) => s.platform === platform && s.id === id);
       apply({ platform, mall: !!curShop.mall });
-      view = 'products'; return renderProducts();
+      view = 'products'; query = ''; return renderProducts();
     }
     if (b.dataset.prod) {
-      b.disabled = true;
+      b.classList.add('busy');
       try {
         const { product } = await api(`/api/shops/${curShop.platform}/${curShop.id}/products/${b.dataset.prod}`);
-        const res = apply({ platform: curShop.platform, mall: !!curShop.mall, price: product.price, categoryPath: product.categoryPath, productName: product.name });
-        if (res?.matched === false) { msg = `Đã điền giá. Không tìm thấy ngành “${(product.categoryPath || []).join(' › ')}” trong biểu phí — hãy chọn ngành thủ công.`; b.disabled = false; return renderProducts(); }
-        dlg.close();
-      } catch (err) { msg = err.message; renderProducts(); }
+        detail = product;
+        if (product.models?.length) { view = 'models'; return renderModels(); }
+        choose(null);
+      } catch (err) {
+        if (err.auth) return render();
+        b.classList.remove('busy');
+        const box = document.getElementById('scProds'); box?.insertAdjacentHTML('afterbegin', errBox(err.message));
+      }
     }
   });
   dlg.addEventListener('change', async (e) => {
@@ -109,7 +157,12 @@ export function initShopConnect({ apply }) {
     await api(`/api/shops/${p}/${id}`, { method: 'PATCH', body: JSON.stringify({ mall: e.target.checked }) }).catch((err) => { msg = err.message; });
     render();
   });
-  dlg.addEventListener('input', (e) => { if (e.target.id === 'scFilter') drawProducts(); });
+  let deb = null;
+  dlg.addEventListener('input', (e) => {
+    if (e.target.id !== 'scFilter') return;
+    clearTimeout(deb);
+    deb = setTimeout(() => { query = e.target.value.trim(); reqId++; loading = false; products = []; next = null; const box = document.getElementById('scProds'); if (box) box.innerHTML = '<p class="muted sc-load">Đang tìm…</p>'; loadMore(); }, 350);
+  });
   dlg.addEventListener('submit', async (e) => {
     if (e.target.id !== 'scLogin') return;
     e.preventDefault();

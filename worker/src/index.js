@@ -164,10 +164,11 @@ export async function handle(req, env, fetchFn = fetch) {
     return J({ shops });
   }
 
-  const m = p.match(/^\/api\/shops\/(shopee|tiktok)\/([^/]+)(?:\/products(?:\/([^/]+))?)?$/);
+  const m = p.match(/^\/api\/shops\/(shopee|tiktok)\/([^/]+)(?:\/(products|categories)(?:\/([^/]+))?)?$/);
   if (m) {
-    const [, platform, id, pid] = m;
-    const isProducts = p.includes('/products');
+    const [, platform, id, sub, pid] = m;
+    const isProducts = !!sub;
+    if (sub && req.method !== 'GET') return J({ error: 'method_not_allowed' }, 405); // chỉ đọc
     const rec = await loadShop(env, platform, id);
     if (!rec) return J({ error: 'shop_not_found' }, 404);
     if (!isProducts && req.method === 'DELETE') { await env.SHOPS.delete(shopKey(platform, id)); return J({ ok: true }); }
@@ -180,16 +181,26 @@ export async function handle(req, env, fetchFn = fetch) {
     try {
       const tokens = await validTokens(env, rec, fetchFn);
       if (platform === 'shopee') {
-        if (pid) {
+        const getCats = async () => {
           let cats = JSON.parse((await env.SHOPS.get('cache:shopee:categories')) || 'null');
           if (!cats) { cats = await shopee.getCategories(env, tokens, id, fetchFn); await env.SHOPS.put('cache:shopee:categories', JSON.stringify(cats), { expirationTtl: 86400 }); }
+          return cats;
+        };
+        if (sub === 'categories') return J({ categories: (await getCats()).map((c) => [c.id, c.parent, c.name]) });
+        if (pid) {
+          const cats = await getCats();
           return J({ product: await shopee.productDetail(env, tokens, id, pid, cats, fetchFn) });
         }
-        return J(await shopee.listProducts(env, tokens, id, { offset: Number(url.searchParams.get('next') || 0) }, fetchFn));
+        return J(await shopee.listProducts(env, tokens, id, { offset: url.searchParams.get('next') || 0, q: url.searchParams.get('q') || '' }, fetchFn));
       }
+      if (sub === 'categories') return J({ categories: [] });
       if (pid) return J({ product: await tiktok.productDetail(env, tokens, rec.cipher, pid, fetchFn) });
       return J(await tiktok.listProducts(env, tokens, rec.cipher, { pageToken: url.searchParams.get('next') || '' }, fetchFn));
-    } catch (e) { return J({ error: 'platform_error', message: e.message }, 502); }
+    } catch (e) {
+      console.log('platform error', platform, String(e.message || e).slice(0, 200));
+      const msg = platform === 'shopee' ? shopee.friendlyError(e) : String(e.message || e);
+      return J({ error: /hết hạn/.test(msg) ? 'reauth_required' : 'platform_error', message: msg }, 502);
+    }
   }
   return J({ error: 'not_found' }, 404);
 }

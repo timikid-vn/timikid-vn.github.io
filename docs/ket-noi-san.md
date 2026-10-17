@@ -158,3 +158,12 @@ Các khóa nội bộ (`TOKEN_ENC_KEY`, khóa ký phiên `AUTH_SIGNING_JWK`) đ�
   npx wrangler deploy
   ```
 - Frontend: đặt biến repo `SHOP_API_URL` (GitHub → Settings → Secrets and variables → Actions → Variables) bằng URL Worker, rồi chạy lại workflow deploy.
+
+## Chọn sản phẩm từ shop Shopee (chỉ đọc)
+
+- Bấm **Chọn shop → shop Shopee** → danh sách sản phẩm (đang bán + đang ẩn), tìm theo **tên hoặc SKU**, cuộn để tải thêm.
+- Sản phẩm có phân loại → chọn phân loại (giá gốc → giá sau KM, tồn kho, SKU).
+- **Giá bán** được điền bằng giá **sau khuyến mãi của shop** (`price_info.current_price`); ghi chú dưới ô giá hiện giá gốc → giá KM, % giảm, cảnh báo hết hàng / đang ẩn.
+- **Ngành hàng** tự chọn theo `category_id` (đường dẫn tiếng Việt từ `product/get_category`) trên bảng phí Mall hoặc Shop thường. Không chắc chắn → mở bộ chọn ngành với gợi ý.
+- Worker chỉ gọi API đọc: `product/get_item_list`, `search_item`, `get_item_base_info`, `get_model_list`, `get_item_promotion`, `get_category`.
+- TikTok Shop: **tạm chưa hỗ trợ kết nối** (vẫn tính phí TikTok thủ công).
