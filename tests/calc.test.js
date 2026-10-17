@@ -39,14 +39,17 @@ describe('calculate', () => {
     const b = calculate({ price: 300000, cost: 100000, commissionRate: cat.shopee[1].rate, fees: shopeeFees });
     expect(b.profit).toBeLessThan(a.profit);
   });
-  it('seller discount reduces fee base', () => {
-    const r = calculate({ price: 200000, discount: 20000, commissionRate: 10, fees: [] });
-    expect(r.base).toBe(180000); expect(r.platformFees).toBe(18000);
-  });
-  it('discount larger than price is clamped', () => expect(calculate({ price: 1000, discount: 5000 }).base).toBe(0));
   it('break-even ROAS and monthly', () => {
     const r = calculate({ price: 100000, cost: 50000, fees: [], ads: { mode: 'vnd', value: 10000 }, ordersPerMonth: 100 });
     expect(r.profit).toBe(40000); expect(r.breakEvenRoas).toBeCloseTo(2); expect(r.monthlyProfit).toBe(4_000_000);
+  });
+  it('nhân sự & đóng gói (opex) + quảng cáo tách riêng', () => {
+    const r = calculate({ price: 200000, cost: 100000, fees: [], opex: { mode: 'vnd', value: 5000 }, ads: { mode: 'percent', value: 10 } });
+    expect(r.opex).toBe(5000); expect(r.ads).toBe(20000); expect(r.profit).toBe(75000);
+  });
+  it('opex theo tháng chia cho số đơn', () => {
+    const r = calculate({ price: 200000, fees: [], opex: { mode: 'monthly', value: 3_000_000 }, ordersPerMonth: 300 });
+    expect(r.opex).toBe(10000);
   });
 });
 

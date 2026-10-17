@@ -16,37 +16,25 @@
       <h2>1. Sàn & loại shop</h2>
       <div class="seg" id="platform"><button data-v="shopee">🛍️ Shopee</button><button data-v="tiktok">🎵 TikTok Shop</button></div>
       <div class="seg" id="shopType"><button data-v="0">Shop thường</button><button data-v="1">Shop Mall</button></div>
-      <div class="catpick">
-        <div class="cat-head"><span class="lbl">Ngành hàng <span id="catCount" class="muted"></span></span></div>
-        <input id="catSearch" type="search" placeholder="🔍 Tìm ngành (gõ không dấu cũng được): sua bau, ao so mi, tai nghe..." autocomplete="off" />
-        <div id="catCols" class="cat-cols"></div>
-        <div id="catCrumb" class="cat-crumb"></div>
+      <div class="field-lbl">Ngành hàng <span class="muted" id="catCount"></span> <span id="catBadge" class="badge" hidden></span></div>
+      <div class="catfield">
+        <button type="button" id="catOpen" class="cat-trigger"><span id="catLabel">Chọn ngành hàng</span><i>›</i></button>
+        <div class="suffix rate-in" id="rateBox" hidden><input id="commissionRate" inputmode="decimal" aria-label="Phí cố định %"/><i>%</i></div>
       </div>
-      <p id="catHint" class="cat-hint" hidden></p>
-      <div id="rateBox" class="rate-box" hidden>
-        <label>Phí cố định / hoa hồng ngành (%) <span id="catBadge" class="badge"></span>
-          <div class="suffix big-rate"><input id="commissionRate" inputmode="decimal" /><i>%</i></div></label>
-        <small id="catNote" class="muted"></small>
-      </div>
+      <small id="catNote" class="muted"></small>
     </div>
     <div class="card">
-      <h2>2. Giá & chi phí sản phẩm</h2>
+      <h2>2. Giá & chi phí</h2>
       <div class="two">
         <label>Giá bán<div class="suffix"><input class="money" id="price" inputmode="numeric" placeholder="0"/><i>₫</i></div></label>
         <label>Giá vốn<div class="suffix"><input class="money" id="cost" inputmode="numeric" placeholder="0"/><i>₫</i></div></label>
-        <label>Giảm giá / voucher của shop<div class="suffix"><input class="money" id="discount" inputmode="numeric" placeholder="0"/><i>₫</i></div></label>
-        <label>Đóng gói<div class="suffix"><input class="money" id="packaging" inputmode="numeric" placeholder="0"/><i>₫</i></div></label>
-        <label>Hỗ trợ phí ship<div class="suffix"><input class="money" id="shipping" inputmode="numeric" placeholder="0"/><i>₫</i></div></label>
-        <label>Chi phí khác / đơn<div class="suffix"><input class="money" id="otherCost" inputmode="numeric" placeholder="0"/><i>₫</i></div></label>
+        <div id="opexBox"></div>
+        <div id="adsBox"></div>
+        <label id="ordersBox">Số đơn dự kiến / tháng<div class="suffix"><input class="money" id="ordersPerMonth" inputmode="numeric" placeholder="VD: 500"/><i>đơn</i></div><small class="muted" id="ordersHint">Để tính lãi/lỗ cả tháng</small></label>
       </div>
     </div>
     <div class="card">
-      <h2>3. Nhân sự & quảng cáo</h2>
-      <label>Số đơn dự kiến / tháng<div class="suffix"><input class="money" id="ordersPerMonth" inputmode="numeric" placeholder="VD: 500"/><i>đơn</i></div></label>
-      <div id="staffBox"></div><div id="adsBox"></div>
-    </div>
-    <div class="card">
-      <h2>4. Phí sàn & tùy chọn <button id="resetFees" class="link">↺ Khôi phục mặc định</button></h2>
+      <h2>3. Phí sàn & tùy chọn <button id="resetFees" class="link">↺ Khôi phục mặc định</button></h2>
       <p class="muted">Bật/tắt và sửa trực tiếp mức phí. ⚠️ = chưa xác minh từ nguồn chính thức.</p>
       <div id="fees"></div>
     </div>
@@ -58,5 +46,11 @@
       <p class="muted">Biểu phí tra cứu ngày 17/10/2026. Sàn có thể thay đổi — hãy đối chiếu Kênh Người Bán.</p></div>
   </section>
 </main>
+<dialog id="catDialog" class="cat-dialog" aria-label="Chọn ngành hàng">
+  <div class="dlg-head"><b>Chọn ngành hàng <span class="muted" id="catCount2"></span></b><button type="button" id="catClose" class="dlg-x" aria-label="Đóng">✕</button></div>
+  <input id="catSearch" type="search" placeholder="🔍 Tìm ngành (gõ không dấu cũng được): sua bau, ao so mi..." autocomplete="off" />
+  <div id="catCols" class="cat-cols"></div>
+  <div class="dlg-foot"><div id="catCrumb" class="cat-crumb"></div><p id="catHint" class="cat-hint" hidden></p></div>
+</dialog>
 <script type="module" src="/src/main.js"></script>
 </body></html>

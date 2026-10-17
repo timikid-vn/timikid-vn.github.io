@@ -71,3 +71,40 @@ ul{padding-left:18px;margin:0}li{margin-bottom:6px}
   .cat-col.m-show{display:block}
   .cat-back{display:block;width:100%;text-align:left;border:0;border-bottom:1px solid var(--line);background:#f4f5fa;padding:10px 14px;font:inherit;font-weight:700;font-size:14px;color:var(--acc);cursor:pointer;position:sticky;top:-6px}
 }
+
+/* ---- trường chọn ngành + popup ---- */
+.field-lbl{font-size:13px;font-weight:600;color:var(--muted);margin:12px 0 6px;display:flex;gap:6px;align-items:center}
+.catfield{display:flex;gap:8px;align-items:stretch}
+.cat-trigger{flex:1;min-width:0;display:flex;align-items:center;justify-content:space-between;gap:8px;text-align:left;border:1.5px solid var(--line);background:#fff;border-radius:12px;padding:11px 14px;font:inherit;font-size:14px;font-weight:600;color:var(--ink);cursor:pointer}
+.cat-trigger:hover{border-color:var(--acc)}
+.cat-trigger #catLabel{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.cat-trigger #catLabel span{color:#9aa1b2;font-weight:400}
+.cat-trigger i{font-style:normal;color:var(--acc);font-size:18px}
+.cat-trigger.empty{color:var(--muted);border-style:dashed;border-color:var(--acc)}
+.rate-in{flex:0 0 100px}
+.rate-in input{font-size:18px;font-weight:800;color:var(--acc);background:#fff3ef;border-color:#ffd5c8}
+#catNote{display:block;margin-top:6px}
+.cat-dialog{border:0;border-radius:18px;padding:16px;width:min(1000px,94vw);max-height:90vh;box-shadow:0 20px 60px rgba(0,0,0,.25)}
+.cat-dialog::backdrop{background:rgba(20,24,36,.45)}
+.cat-dialog[open]{display:flex;flex-direction:column}
+.dlg-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;font-size:16px}
+.dlg-x{border:0;background:#f1f2f7;border-radius:50%;width:34px;height:34px;font-size:16px;cursor:pointer}
+.cat-dialog .cat-cols{height:440px;flex:1 1 auto}
+.cat-dialog .cat-col{flex:1 0 230px}
+.cat-dialog input[type=search]{margin-bottom:10px}
+.dlg-foot .cat-hint{margin-top:8px}
+/* ô nhập có chọn đơn vị */
+.suffix.sel select{position:absolute;right:4px;top:50%;transform:translateY(-50%);border:0;background:#f1f2f7;border-radius:8px;padding:6px 4px;font:inherit;font-size:12px;font-weight:600;color:var(--ink);cursor:pointer}
+.suffix.sel input{padding-right:84px}
+#ordersBox small{display:block;margin-top:4px;font-weight:400}
+#ordersBox.need small{color:#b26b00}
+@media(max-width:639px){
+  .cat-dialog{width:100vw;max-width:100vw;height:100dvh;max-height:100dvh;margin:0;border-radius:0;padding:12px}
+  .cat-dialog .cat-cols{height:auto}
+  .rate-in{flex-basis:88px}
+}
+.col,.card,.two>*,.catfield,label{min-width:0}
+.suffix.sel select{width:auto;height:auto;min-height:0;margin:0;box-shadow:none;appearance:auto}
+.suffix.sel input{width:100%}
+.suffix.sel select{top:calc(50% + 2.5px);font-size:12px;border:0;padding:6px 4px}
+@media(max-width:639px){.cat-trigger #catLabel{white-space:normal;line-height:1.35}}

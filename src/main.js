@@ -4,10 +4,10 @@ import { calculate, fmtVND, parseVND, fmtThousands } from './calc.js';
 import { shopeeCategories } from './shopeeCategories.js';
 import { buildTree, walk, leaves, searchLeaves } from './categoryTree.js';
 
-const KEY = 'spc-state-v5'; // v2: ngành Shopee đầy đủ từ PDF, bỏ Freeship Xtra
+const KEY = 'spc-state-v6'; // v2: ngành Shopee đầy đủ từ PDF, bỏ Freeship Xtra
 const $ = (id) => document.getElementById(id);
 const defaultFees = () => ({ shopee: [...PLATFORM_FEES.shopee, TAX].map((f) => ({ ...f })), tiktok: [...PLATFORM_FEES.tiktok, TAX].map((f) => ({ ...f })) });
-const blank = { platform: 'shopee', shopType: 0, catPath: null, rateOverride: {}, values: {}, staff: { mode: 'monthly', value: '' }, ads: { mode: 'percent', value: '' }, fees: defaultFees() };
+const blank = { platform: 'shopee', shopType: 0, catPath: null, rateOverride: {}, values: {}, opex: { mode: 'vnd', value: '' }, ads: { mode: 'percent', value: '' }, fees: defaultFees() };
 let S;
 try { S = { ...blank, ...JSON.parse(localStorage.getItem(KEY) || '{}') }; } catch { S = { ...blank }; }
 const save = () => localStorage.setItem(KEY, JSON.stringify(S));
@@ -42,7 +42,7 @@ function renderPicker() {
   const { nodes, leaf } = selection();
   const q = $('catSearch').value.trim();
   const root = tree();
-  $('catCount').textContent = `(${leaves(root).length.toLocaleString("vi-VN")})`;
+  $('catCount').textContent = $('catCount2').textContent = `(${leaves(root).length.toLocaleString("vi-VN")})`;
   if (q) {
     const res = searchLeaves(root, q);
     $('catCols').innerHTML = `<div class="cat-results">${res.length ? res.map((r) => `<button type="button" class="cat-res" data-path="${esc(JSON.stringify(r.path))}">${r.path.map(esc).join(' <span>›</span> ')}<b>${r.node.leaf.rate}%</b></button>`).join('') : '<p class="muted">Không tìm thấy ngành phù hợp.</p>'}</div>`;
@@ -60,7 +60,10 @@ function renderPicker() {
     const last = $('catCols').lastElementChild; if (last && window.innerWidth >= 640) $('catCols').scrollLeft = $('catCols').scrollWidth;
   }
   $('catCrumb').innerHTML = nodes.length ? `Đã chọn: <b>${nodes.map((n) => esc(n.name)).join(' &gt; ')}</b>` : 'Đã chọn: <span class="muted">chưa chọn</span>';
-  $('rateBox').hidden = !leaf; $('catHint').hidden = !!leaf;
+  $('catLabel').innerHTML = leaf ? nodes.map((n) => esc(n.name)).join(' <span>›</span> ') : 'Chọn ngành hàng';
+  $('catOpen').classList.toggle('empty', !leaf);
+  $('rateBox').hidden = !leaf; $('catBadge').hidden = !leaf; $('catHint').hidden = !!leaf;
+  if (!leaf) $('catNote').textContent = 'Bấm để chọn ngành hàng tới cấp cuối cùng — phí cố định sẽ hiện ở đây.';
   if (!leaf) $('catHint').textContent = nodes.length ? `Chọn tiếp tới cấp cuối cùng của “${nodes[nodes.length - 1].name}” để xem phí cố định.` : 'Chọn ngành hàng tới cấp cuối cùng để xem phí cố định.';
 }
 
@@ -81,18 +84,19 @@ function renderStatic() {
   renderFees();
 }
 
+const MODES = { vnd: '₫/đơn', percent: '% giá', monthly: '₫/tháng' };
 function costBox(key, label) {
-  const c = S[key];
-  const unit = c.mode === 'percent' ? '%' : '₫';
-  return `<div class="costbox"><span class="lbl">${label}</span>
-    <div class="seg small" data-cost="${key}">
-      <button data-v="vnd" class="${c.mode === 'vnd' ? 'on' : ''}">₫ / đơn</button>
-      <button data-v="percent" class="${c.mode === 'percent' ? 'on' : ''}">% giá bán</button>
-      <button data-v="monthly" class="${c.mode === 'monthly' ? 'on' : ''}">Tổng / tháng</button></div>
-    <div class="suffix"><input data-costval="${key}" class="${c.mode === 'percent' ? '' : 'money'}" inputmode="${c.mode === 'percent' ? 'decimal' : 'numeric'}" value="${c.mode === 'percent' ? c.value : fmtThousands(c.value)}" placeholder="0"/><i>${unit}</i></div>
-    ${c.mode === 'monthly' ? '<small class="muted">Chia đều cho số đơn/tháng ở trên.</small>' : ''}</div>`;
+  const c = S[key], pct = c.mode === 'percent';
+  return `<label>${label}<div class="suffix sel"><input data-costval="${key}" class="${pct ? '' : 'money'}" inputmode="${pct ? 'decimal' : 'numeric'}" value="${pct ? c.value : fmtThousands(c.value)}" placeholder="0"/>
+    <select data-costmode="${key}" aria-label="Đơn vị">${Object.entries(MODES).map(([k, v]) => `<option value="${k}" ${k === c.mode ? 'selected' : ''}>${v}</option>`).join('')}</select></div></label>`;
 }
-function renderCosts() { $('staffBox').innerHTML = costBox('staff', '👥 Chi phí nhân sự'); $('adsBox').innerHTML = costBox('ads', '📣 Chi phí quảng cáo'); }
+function renderCosts() {
+  $('opexBox').innerHTML = costBox('opex', 'Nhân sự & đóng gói');
+  $('adsBox').innerHTML = costBox('ads', 'Chi phí quảng cáo');
+  const monthly = S.opex.mode === 'monthly' || S.ads.mode === 'monthly';
+  $('ordersBox').classList.toggle('need', monthly);
+  $('ordersHint').textContent = monthly ? 'Cần nhập để chia chi phí theo tháng cho mỗi đơn' : 'Để tính lãi/lỗ cả tháng (tùy chọn)';
+}
 
 function renderFees() {
   $('fees').innerHTML = S.fees[S.platform].map((f, i) => `
@@ -104,14 +108,14 @@ function renderFees() {
 }
 
 function readInputs() {
-  const v = {}; for (const id of ['price', 'cost', 'discount', 'packaging', 'shipping', 'otherCost', 'ordersPerMonth']) v[id] = parseVND($(id).value);
+  const v = {}; for (const id of ['price', 'cost', 'ordersPerMonth']) v[id] = parseVND($(id).value);
   return v;
 }
 
 function update() {
   S.values = readInputs();
   const rate = cat() ? Number(String($('commissionRate').value).replace(',', '.')) || 0 : 0;
-  const r = calculate({ ...S.values, commissionRate: rate, fees: S.fees[S.platform], staff: S.staff, ads: S.ads });
+  const r = calculate({ ...S.values, commissionRate: rate, fees: S.fees[S.platform], opex: S.opex, ads: S.ads });
   save();
   const pos = r.profit >= 0;
   const pct = (n) => (Number.isFinite(n) ? n.toLocaleString('vi-VN', { maximumFractionDigits: 1 }) + '%' : '—');
@@ -129,13 +133,11 @@ function update() {
     </div>`;
   const row = (n, a, cls = '', note = '') => `<tr class="${cls}"><td>${n}${note ? `<small> ${note}</small>` : ''}</td><td>${a}</td></tr>`;
   $('breakdown').innerHTML = row('Giá bán', fmtVND(r.price)) +
-    (r.discount ? row('− Giảm giá của shop', fmtVND(-r.discount)) : '') +
     r.lines.map((l) => row('− ' + l.name, fmtVND(-l.amount), 'fl', l.rate != null ? `(${l.rate}%)` : '')).join('') +
     row(`= Doanh thu ${PN()} ước tính`, fmtVND(r.revenue), 'sum', '(như màn hình sàn, trước thuế)') +
     r.taxLines.map((l) => row('− ' + l.name, fmtVND(-l.amount), 'fl', `(${l.rate}%)`)).join('') +
     (r.taxLines.length ? row('= Thực nhận sau thuế', fmtVND(r.payout), 'sum') : '') +
-    row('− Giá vốn', fmtVND(-r.cost)) + row('− Đóng gói, ship, khác', fmtVND(-r.other)) +
-    row('− Nhân sự', fmtVND(-r.staff)) + row('− Quảng cáo', fmtVND(-r.ads)) +
+    row('− Giá vốn', fmtVND(-r.cost)) + row('− Nhân sự & đóng gói', fmtVND(-r.opex)) + row('− Quảng cáo', fmtVND(-r.ads)) +
     row(pos ? '= Lợi nhuận' : '= Lỗ', fmtVND(r.profit), 'sum ' + (pos ? 'tpos' : 'tneg'));
 }
 
@@ -143,14 +145,16 @@ function update() {
 document.addEventListener('click', (e) => {
   const b = e.target.closest('button'); if (!b) return;
   const seg = b.parentElement;
+  if (b.id === 'catOpen') { $('catDialog').showModal(); renderPicker(); setTimeout(() => window.innerWidth >= 640 && $('catSearch').focus(), 0); return; }
+  if (b.id === 'catClose') { $('catDialog').close(); return; }
   if (b.classList.contains('cat-item')) {
     const d = Number(b.dataset.depth); setPath([...curPath().slice(0, d), b.dataset.name]);
     PICK.mobileDepth = null; renderStatic();
+    if (cat()) $('catDialog').close();
   } else if (b.dataset.back != null) { PICK.mobileDepth = Number(b.dataset.back); renderPicker(); return; }
-  else if (b.classList.contains('cat-res')) { setPath(JSON.parse(b.dataset.path)); $('catSearch').value = ''; PICK.mobileDepth = null; renderStatic(); }
+  else if (b.classList.contains('cat-res')) { setPath(JSON.parse(b.dataset.path)); $('catSearch').value = ''; PICK.mobileDepth = null; renderStatic(); $('catDialog').close(); }
   else if (seg.id === 'platform') { S.platform = b.dataset.v; PICK.mobileDepth = null; renderStatic(); }
   else if (seg.id === 'shopType') { S.shopType = Number(b.dataset.v); renderStatic(); }
-  else if (seg.dataset.cost) { S[seg.dataset.cost] = { mode: b.dataset.v, value: '' }; renderCosts(); }
   else if (b.id === 'resetFees') { S.fees[S.platform] = defaultFees()[S.platform]; delete S.rateOverride[catKey()]; renderStatic(); }
   else return;
   update();
@@ -175,6 +179,11 @@ document.addEventListener('input', (e) => {
 
 // ---- init
 for (const [id, val] of Object.entries(S.values || {})) if ($(id)) $(id).value = fmtThousands(val);
-if (!S.values?.price) { $('price').value = '199.000'; $('cost').value = '90.000'; $('packaging').value = '3.000'; }
+if (!S.values?.price) { $('price').value = '199.000'; $('cost').value = '90.000'; }
 $('sources').innerHTML = Object.values(SOURCES).map((s) => `<li><a href="${s.url}" target="_blank" rel="noopener">${s.title}</a> — hiệu lực ${s.effective}</li>`).join('');
+$('catDialog').addEventListener('click', (e) => { if (e.target === $('catDialog')) $('catDialog').close(); });
+document.addEventListener('change', (e) => {
+  const k = e.target.dataset?.costmode; if (!k) return;
+  S[k] = { mode: e.target.value, value: '' }; renderCosts(); update();
+});
 renderStatic(); renderCosts(); update();
