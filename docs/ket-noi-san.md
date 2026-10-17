@@ -137,7 +137,7 @@ Hai khóa nội bộ `SESSION_SECRET` và `TOKEN_ENC_KEY` sẽ được em sinh 
 - Mã máy chủ: thư mục `worker/` (Cloudflare Worker). Biến môi trường ghi trong `worker/wrangler.toml`.
 - Secrets: `OWNER_PASSWORD`, `SESSION_SECRET`, `TOKEN_ENC_KEY` (32 byte, base64), `SHOPEE_PARTNER_ID`, `SHOPEE_PARTNER_KEY`, `TIKTOK_APP_KEY`, `TIKTOK_APP_SECRET`, và `TIKTOK_SERVICE_ID` (tùy chọn).
 - Thử với sandbox Shopee: bỏ dấu `#` ở dòng `SHOPEE_HOST` trong `wrangler.toml` và dùng Test Partner ID/Key.
-- Các lệnh:
+- Các lệnh (wrangler 4 cần Node ≥ 22):
   ```
   cd worker && npm i
   npx wrangler kv namespace create SHOPS      # dán id vào wrangler.toml
