@@ -3,8 +3,9 @@ import { CATEGORIES, PLATFORM_FEES, TAX, SOURCES } from './fees.js';
 import { calculate, fmtVND, parseVND, fmtThousands } from './calc.js';
 import { shopeeCategories } from './shopeeCategories.js';
 import { tiktokCategories } from './tiktokCategories.js';
-import { buildTree, walk, leaves, searchLeaves } from './categoryTree.js';
-import { matchCategory } from './categoryMatch.js';
+import { buildTree, walk, leaves } from './categoryTree.js';
+import { matchCategory, matchShopeeCategory } from './categoryMatch.js';
+import { searchCategories, highlight } from './categorySearch.js';
 import { initShopConnect } from './shopConnect.js';
 
 const KEY = 'spc-state-v9'; // v2: ngành Shopee đầy đủ từ PDF, bỏ Freeship Xtra
@@ -29,7 +30,7 @@ function tree() {
   return TREES[k];
 }
 const DEFAULT_PATH = { shopee: ['Thời Trang Nữ', 'Áo', 'Áo sơ mi'], tiktok: ['Trang phục nữ & Đồ lót', 'Áo nữ', 'Áo cánh & Áo sơ mi'] };
-const PICK = { mobileDepth: null };
+const PICK = { mobileDepth: null, suggest: null }; // suggest: { q, paths, from } — gợi ý khi ghép ngành từ Shopee chưa chắc
 // Đường dẫn đang chọn cho sàn hiện tại (chung cho thường/Mall — chuyển loại shop giữ nếu tồn tại)
 const curPath = () => (S.catPath?.[S.platform] ?? DEFAULT_PATH[S.platform]);
 function selection() {
@@ -47,9 +48,11 @@ function renderPicker() {
   const q = $('catSearch').value.trim();
   const root = tree();
   $('catCount').textContent = $('catCount2').textContent = `(${leaves(root).length.toLocaleString("vi-VN")})`;
-  if (q) {
-    const res = searchLeaves(root, q);
-    $('catCols').innerHTML = `<div class="cat-results">${res.length ? res.map((r) => `<button type="button" class="cat-res" data-path="${esc(JSON.stringify(r.path))}">${r.path.map(esc).join(' <span>›</span> ')}<b>${vn(r.node.leaf.rate)}%</b></button>`).join('') : '<p class="muted">Không tìm thấy ngành phù hợp.</p>'}</div>`;
+  const sug = PICK.suggest && (!q || q === PICK.suggest.q) ? PICK.suggest.paths.map((p) => ({ path: p, node: walk(root, p).nodes.at(-1) })).filter((r) => r.node?.leaf) : [];
+  if (q || sug.length) {
+    const res = q ? searchCategories(root, q, 60).filter((r) => !sug.some((x) => x.path.join() === r.path.join())) : [];
+    const row = (r, cls = '') => `<button type="button" class="cat-res ${cls}" data-path="${esc(JSON.stringify(r.path))}">${r.path.map((x, i) => (r.hl ? highlight(x, r.hl[i], esc) : esc(x))).join(' <span>›</span> ')}<b>${vn(r.node.leaf.rate)}%</b></button>`;
+    $('catCols').innerHTML = `<div class="cat-results">${sug.length ? `<p class="cat-sug-h">🛍 Gợi ý cho ngành Shopee: <b>${esc(PICK.suggest.from.join(' › '))}</b></p>${sug.map((r) => row(r, 'sug')).join('')}${res.length ? '<p class="cat-sug-h">Kết quả tìm kiếm</p>' : ''}` : ''}${res.map((r) => row(r)).join('')}${!sug.length && !res.length ? '<p class="muted">Không tìm thấy ngành phù hợp. Thử ít chữ hơn hoặc gõ không dấu.</p>' : ''}</div>`;
     $('catCols').dataset.mode = 'search';
   } else {
     $('catCols').dataset.mode = 'cols';
@@ -76,8 +79,19 @@ const vn = (v) => String(v ?? '').replace('.', ',');
 const PN = () => (S.platform === 'shopee' ? 'Shopee' : 'TikTok');
 function renderSeg(id, val) { $(id).querySelectorAll('button').forEach((b) => b.classList.toggle('on', b.dataset.v == val)); }
 
+const money = (n) => (n == null ? '—' : Math.round(n).toLocaleString('vi-VN') + '₫');
+function renderShopNotes() {
+  const f = S.fromShop, el = $('priceNote');
+  if (!f || f.platform !== S.platform) { el.hidden = true; return; }
+  el.hidden = false;
+  el.innerHTML = `<span class="pn-src" title="${esc(f.name)}">🛍 ${esc(f.model || f.name)}</span>`
+    + (f.promo ? ` <s>${money(f.original)}</s> → <b>${money(f.price)}</b> <em class="tag ok">−${f.discountPct}%${f.promoNames?.length ? ' ' + esc(f.promoNames.join(', ')) : ''}</em>` : ` <b>${money(f.price)}</b> <em class="tag">không KM</em>`)
+    + (f.warn?.length ? ` <em class="tag warn">${esc(f.warn.join(' '))}</em>` : '')
+    + ` <button type="button" class="link" id="priceNoteX" aria-label="Bỏ ghi chú">✕</button>`;
+}
 function renderStatic() {
   document.body.dataset.platform = S.platform;
+  renderShopNotes();
   renderSeg('platform', S.platform); $('mallToggle').checked = S.shopType === 1;
   renderPicker();
   const d = cat();
@@ -86,6 +100,8 @@ function renderStatic() {
     $('catBadge').textContent = d.verified ? '✓ đã xác minh' : '⚠️ chưa xác minh';
     $('catBadge').className = 'badge ' + (d.verified ? 'ok' : 'warn');
     $('catNote').textContent = `Mặc định ${vn(d.rate)}%${d.note ? ' (' + d.note + ')' : ''}`;
+    const f = S.fromShop;
+    if (f && f.platform === S.platform && f.catPath?.length && !f.catConfirmed && f.confidence && f.confidence !== 'exact') $('catNote').textContent += ` · Ngành trên Shopee: ${f.catPath.join(' › ')}${f.confidence === 'same-fee' ? ' (cùng mức phí)' : ''}`;
   }
   renderFees();
 }
@@ -164,9 +180,10 @@ document.addEventListener('click', (e) => {
     PICK.mobileDepth = null; renderStatic();
     if (cat()) $('catDialog').close();
   } else if (b.dataset.back != null) { PICK.mobileDepth = Number(b.dataset.back); renderPicker(); return; }
-  else if (b.classList.contains('cat-res')) { setPath(JSON.parse(b.dataset.path)); $('catSearch').value = ''; PICK.mobileDepth = null; renderStatic(); $('catDialog').close(); }
+  else if (b.classList.contains('cat-res')) { setPath(JSON.parse(b.dataset.path)); $('catSearch').value = ''; PICK.mobileDepth = null; PICK.suggest = null; if (S.fromShop) S.fromShop.catConfirmed = true; renderStatic(); $('catDialog').close(); }
   else if (seg.id === 'platform') { S.platform = b.dataset.v; PICK.mobileDepth = null; renderStatic(); }
   else if (b.id === 'mbar') { $('result').scrollIntoView({ behavior: 'smooth', block: 'start' }); return; }
+  else if (b.id === 'priceNoteX') { S.fromShop = null; renderShopNotes(); save(); return; }
   else if (b.id === 'resetFees') { S.fees[S.platform] = defaultFees()[S.platform]; delete S.rateOverride[catKey()]; renderStatic(); }
   else return;
   update();
@@ -179,6 +196,7 @@ document.addEventListener('input', (e) => {
     const p = Math.max(0, t.value.length - fromEnd); t.setSelectionRange(p, p);
   }
   if (t.id === 'catSearch') { renderPicker(); return; }
+  if (t.id === 'price' && S.fromShop) { S.fromShop = null; renderShopNotes(); }
   if (t.id === 'commissionRate') S.rateOverride[catKey()] = t.value;
   if (t.dataset.costval) S[t.dataset.costval].value = t.classList.contains('money') ? parseVND(t.value) : t.value.replace(',', '.');
   if (t.dataset.fee) { S.fees[S.platform][t.dataset.fee].on = t.checked; t.closest('.fee').classList.toggle('off', !t.checked); }
@@ -205,12 +223,25 @@ if ('IntersectionObserver' in window) new IntersectionObserver(([e]) => $('mbar'
 
 // ---- Chọn shop (kết nối sàn): đặt sàn + Mall, điền giá & ngành từ sản phẩm
 initShopConnect({
-  apply({ platform, mall, price, categoryPath }) {
-    S.platform = platform; S.shopType = mall ? 1 : 0; PICK.mobileDepth = null;
-    let matched = null;
-    if (categoryPath?.length) { const p = matchCategory(tree(), categoryPath); matched = !!p; if (p) setPath(p); }
-    if (price != null) $('price').value = fmtThousands(String(Math.round(price)));
+  apply({ platform, mall, price, categoryPath, productName, modelName, priceInfo }) {
+    S.platform = platform; S.shopType = mall ? 1 : 0; PICK.mobileDepth = null; PICK.suggest = null;
+    let matched = null, needPick = false;
+    if (categoryPath?.length) {
+      if (platform === 'shopee') {
+        const r = matchShopeeCategory(tree(), categoryPath);
+        const sure = ['exact', 'high', 'same-fee'].includes(r.confidence);
+        if (sure) setPath(r.path);
+        else { needPick = true; PICK.suggest = { q: categoryPath.at(-1), paths: r.suggestions || [], from: categoryPath }; }
+        matched = sure;
+        S.fromShop = { platform, name: productName, model: modelName ? `${productName} · ${modelName}` : '', catPath: categoryPath, confidence: r.confidence };
+      } else { const p = matchCategory(tree(), categoryPath); matched = !!p; if (p) setPath(p); }
+    }
+    if (price != null) {
+      $('price').value = fmtThousands(String(Math.round(price)));
+      if (priceInfo && S.fromShop) Object.assign(S.fromShop, { price: priceInfo.price, original: priceInfo.original, promo: priceInfo.promo, discountPct: priceInfo.discountPct, promoNames: priceInfo.promoNames, warn: priceInfo.warn });
+    }
     renderStatic(); update();
+    if (needPick) { $('catSearch').value = PICK.suggest.q; $('catDialog').showModal(); renderPicker(); }
     return { matched };
   },
 });

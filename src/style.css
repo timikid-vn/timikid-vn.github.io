@@ -217,3 +217,26 @@ body[data-platform=tiktok] .plat button.on{border-color:#111;background:#f4f4f6;
 .sc-tabs button.on{background:#fff;color:var(--ink);box-shadow:0 1px 3px rgba(0,0,0,.08)}
 .sc-login label{display:flex;flex-direction:column;gap:4px;font-size:13px;font-weight:600}
 .sc-login input{min-height:44px;border:1.5px solid var(--line);border-radius:10px;padding:0 12px;font:inherit;font-size:16px}
+/* chọn sản phẩm Shopee */
+.sc-head .badge{font-size:11px;padding:1px 7px;border-radius:999px;background:var(--line);color:var(--muted)}.sc-head .badge.mall{background:#fde3dc;color:var(--acc)}
+.sc-search input{width:100%;box-sizing:border-box;margin-top:6px}
+.sc-prod{justify-content:flex-start;flex:none}
+.sc-prod img,.sc-noimg,.sc-pd img{width:44px;height:44px;border-radius:8px;object-fit:cover;flex:none;background:var(--line)}
+.sc-pd{display:flex;gap:10px;align-items:center;padding:6px 2px}.sc-pd img{width:56px;height:56px}.sc-pd b{display:block;font-size:14px;line-height:1.3}.sc-pd small{font-size:12px}
+.sc-pn{flex:1;min-width:0;display:flex;flex-direction:column;gap:2px}
+.sc-name{display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;line-height:1.3}
+.sc-pn small{color:var(--muted);font-size:12px}
+.sc-pv{display:flex;flex-direction:column;align-items:flex-end;white-space:nowrap;font-size:13px}.sc-pv s{color:#9aa1b2;font-size:12px}
+.sc-model{min-height:48px}.sc-model:disabled{opacity:.5}
+.sc-prod.busy{opacity:.55;pointer-events:none}
+.sc-load{text-align:center;padding:12px;font-size:13px}
+.tag{font-style:normal;font-size:11px;padding:0 6px;border-radius:6px;background:var(--line);color:var(--muted);white-space:nowrap}
+.tag.ok{background:#e3f6ea;color:var(--pos)}.tag.warn{background:#fde5e5;color:var(--neg)}
+.price-note{display:flex;flex-wrap:wrap;gap:4px;align-items:center;font-size:12px;color:var(--muted);margin-top:4px;font-weight:400}
+.price-note s{color:#9aa1b2}.price-note b{color:var(--ink)}
+.pn-src{max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.price-note .link{padding:0 2px;font-size:12px}
+.cat-res mark{background:#ffe2a8;color:inherit;border-radius:3px;padding:0 1px}
+.cat-sug-h{margin:8px 6px 4px;font-size:12px;color:var(--muted)}
+.cat-res.sug{background:#fffaf2}
+.sc-connect:disabled small{color:var(--muted)}
