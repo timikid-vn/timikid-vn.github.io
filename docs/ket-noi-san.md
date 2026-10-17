@@ -9,10 +9,10 @@ Dành cho anh Duy. Đọc từ trên xuống, làm lần lượt từng bước.
 | Việc | Trạng thái |
 |---|---|
 | Shopee Partner ID `2034752` | ✅ Đây là **Live Partner ID**: Shopee Live chấp nhận chữ ký, còn sandbox báo `invalid_partner_id`. Partner Key đã nạp. |
-| Shopee **Redirect URL Domain** | ❗ **Anh cần khai báo** trong Shopee Console (App → Redirect URL Domain): `timikid-shop-connect.timikid-vn.workers.dev`. Hiện Shopee báo: *“The domain of redirect is not consistent with the Redirect URL Domain declared in console.”* |
+| Shopee **Redirect URL Domain** | ✅ Anh đã khai báo `https://n8n.timikid.com`. Shopee chuyển về `https://n8n.timikid.com/webhook/shopee-callback`. Workflow n8n **“Shopee OAuth relay → timikid-shop-connect”** (đang bật, không lưu dữ liệu chạy) trả 302 và chuyển nguyên tham số sang Worker `/oauth/shopee/callback`; Worker vẫn kiểm `state` dùng một lần. Bản workflow: [n8n-shopee-relay.json](n8n-shopee-relay.json). ⚠️ Đừng tắt hay xóa workflow này. |
 | TikTok App key `6k3gnffonvbtq` | ✅ Đã cấu hình, App secret đã nạp. |
-| TikTok **Service ID** | ❗ **Anh cần gửi.** Tài liệu chính thức yêu cầu link ủy quyền của Custom App có dạng `services.tiktokshop.com/open/authorize?service_id=…`. Service ID nằm ở trang chi tiết app trong Partner Center (App & Service). |
-| Đăng nhập | Dùng **tài khoản timikid chung** (email + mật khẩu, admin duyệt). Xem [dang-nhap-chung.md](dang-nhap-chung.md). ❗ Anh cần đặt **mật khẩu admin** qua form bảo mật. |
+| TikTok **Service ID** `7643091412851197713` | ✅ Đã cấu hình. Link ủy quyền mở ra trang đăng nhập Seller Center Việt Nam, sau đó sang trang ủy quyền Custom App. |
+| Đăng nhập | Dùng **tài khoản timikid chung** (email + mật khẩu, admin duyệt). Xem [dang-nhap-chung.md](dang-nhap-chung.md). ✅ Mật khẩu admin đã đặt. |
 
 ## 0. Tóm tắt nhanh
 
@@ -119,14 +119,14 @@ Nguồn: [Partner Center docs – Sign your API request](https://partner.tiktoks
 - [ ] Đã duyệt hồ sơ Shopee chưa / app đã Live chưa.
 - [x] **Shopee Partner ID**: đã nhận `2034752` (Live).
 - [x] **TikTok App key**: đã nhận `6k3gnffonvbtq`.
-- [ ] **TikTok Service ID**.
-- [ ] Xác nhận đã khai báo **Redirect URL Domain** bên Shopee.
+- [x] **TikTok Service ID**: `7643091412851197713`.
+- [x] **Redirect URL Domain** bên Shopee: `https://n8n.timikid.com` (qua relay n8n).
 - [ ] Shop nào là **Mall** (sau khi kết nối anh cũng có thể tự bật/tắt công tắc Mall cạnh từng shop).
 
 **Chỉ nhập qua form bảo mật, KHÔNG gửi trong chat:**
 - [x] **Shopee Partner Key**: đã nạp.
 - [x] **TikTok App secret**: đã nạp.
-- [ ] **Mật khẩu admin** (`ADMIN_PASSWORD` của Worker `timikid-auth`) cho tài khoản `duylinh30190@gmail.com`. Anh tự đặt, nên dài từ 14 ký tự.
+- [x] **Mật khẩu admin** (`ADMIN_PASSWORD` của Worker `timikid-auth`) cho tài khoản `duylinh30190@gmail.com`. Anh tự đặt, nên dài từ 14 ký tự.
 
 Các khóa nội bộ (`TOKEN_ENC_KEY`, khóa ký phiên `AUTH_SIGNING_JWK`) đã được sinh ngẫu nhiên và nạp thẳng vào Cloudflare. Không ai cần xem.
 

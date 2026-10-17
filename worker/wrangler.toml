@@ -15,7 +15,8 @@ ALLOWED_ORIGIN = "https://timikid-vn.github.io"
 FRONTEND_URL = "https://timikid-vn.github.io/"
 SHOPEE_PARTNER_ID = "2034752"
 TIKTOK_APP_KEY = "6k3gnffonvbtq"
-# TIKTOK_SERVICE_ID = ""   # Service ID trong Partner Center (cần cho link ủy quyền của Custom App)
+TIKTOK_SERVICE_ID = "7643091412851197713"   # Service ID (link ủy quyền Custom App)
+SHOPEE_REDIRECT_URL = "https://n8n.timikid.com/webhook/shopee-callback"   # relay n8n (workflow "Shopee OAuth relay → timikid-shop-connect") 302 nguyên query → /oauth/shopee/callback
 AUTH_ISSUER = "https://timikid-auth.timikid-vn.workers.dev"
 # SHOPEE_HOST = "https://openplatform.sandbox.test-stable.shopee.sg"   # bỏ # để dùng sandbox Shopee
 

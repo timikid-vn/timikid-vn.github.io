@@ -8,6 +8,10 @@ import * as shopee from './shopee.js';
 import * as tiktok from './tiktok.js';
 
 const STATE_TTL = 600;
+// Shopee chỉ chấp nhận redirect thuộc "Redirect URL Domain" khai trong Console. Nếu domain đó không phải Worker
+// (vd. n8n.timikid.com), đặt SHOPEE_REDIRECT_URL = relay; relay phải 302 chuyển NGUYÊN query sang /oauth/shopee/callback.
+const SHOPEE_RELAY_CANDIDATE = 'https://n8n.timikid.com/webhook/shopee-callback';
+export const shopeeRedirectBase = (env, url) => (env.SHOPEE_REDIRECT_URL || `${url.origin}/oauth/shopee/callback`).replace(/\?.*$/, '');
 
 const configured = (env) => ({
   shopee: !!(env.SHOPEE_PARTNER_ID && env.SHOPEE_PARTNER_KEY),
@@ -88,15 +92,19 @@ export async function handle(req, env, fetchFn = fetch) {
   if (p === '/api/diag/shopee' && cfg.shopee) {
     // Chỉ trả mã lỗi, không trả dữ liệu shop
     const [live, sandbox] = await Promise.all([shopee.probe(env, shopee.SHOPEE_LIVE, fetchFn), shopee.probe(env, shopee.SHOPEE_SANDBOX, fetchFn)]);
-    // Thử mở link ủy quyền (không tạo state, chỉ xem Shopee có báo lỗi sign/partner không)
-    let auth = null;
-    try {
-      const r = await fetchFn(await shopee.authUrl(env, `${url.origin}/oauth/shopee/callback?state=diag`), { redirect: 'manual' });
-      const txt = r.status < 300 ? (await r.text()).slice(0, 4000) : '';
-      const err = txt.match(/"error"\s*:\s*"([^"]+)"/)?.[1] || (/(error_sign|invalid_partner|wrong sign)/i.exec(txt)?.[1] ?? null);
-      auth = { msg: (txt.match(/"message"\s*:\s*"([^"]{0,200})"/) || [])[1] || null, ctype: r.headers.get('content-type'), len: txt.length, http: r.status, redirect_host: r.headers.get('location') ? new URL(r.headers.get('location'), 'https://x').host : null, error: err, looks_like_login_page: /<html/i.test(txt) && !err };
-    } catch (e) { auth = { error: 'network' }; }
-    return J({ partner_id: String(env.SHOPEE_PARTNER_ID), auth_partner: auth, host_in_use: env.SHOPEE_HOST || shopee.SHOPEE_LIVE, live, sandbox });
+    // Thử mở link ủy quyền với từng redirect ứng viên (state giả "diag", không lưu) — chỉ xem Shopee có báo lỗi không
+    const tryAuth = async (redirect) => {
+      try {
+        const r = await fetchFn(await shopee.authUrl(env, redirect), { redirect: 'manual' });
+        const txt = r.status < 300 ? (await r.text()).slice(0, 4000) : '';
+        const err = txt.match(/"error"\s*:\s*"([^"]+)"/)?.[1] || null;
+        return { redirect_host: new URL(redirect).host, http: r.status, error: err, message: (txt.match(/"message"\s*:\s*"([^"]{0,200})"/) || [])[1] || null, location: r.headers.get('location') ? (({ host, pathname }) => host + pathname)(new URL(r.headers.get('location'), 'https://x')) : null, looks_like_page: /<html/i.test(txt) && !err };
+      } catch { return { error: 'network' }; }
+    };
+    const candidates = [`${url.origin}/oauth/shopee/callback?state=diag`, `${SHOPEE_RELAY_CANDIDATE}?state=diag`];
+    if (env.SHOPEE_REDIRECT_URL && !candidates.some((c) => c.startsWith(env.SHOPEE_REDIRECT_URL))) candidates.push(`${env.SHOPEE_REDIRECT_URL}?state=diag`);
+    const auth_partner = await Promise.all(candidates.map(tryAuth));
+    return J({ partner_id: String(env.SHOPEE_PARTNER_ID), redirect_in_use: shopeeRedirectBase(env, url), auth_partner, host_in_use: env.SHOPEE_HOST || shopee.SHOPEE_LIVE, live, sandbox });
   }
   if (!cfg.ready) return E('not_configured', 503);
 
@@ -144,9 +152,8 @@ export async function handle(req, env, fetchFn = fetch) {
     const platform = start[1];
     const state = randomId();
     await env.SHOPS.put(`state:${platform}:${state}`, '1', { expirationTtl: STATE_TTL });
-    const cbUrl = `${url.origin}/oauth/${platform}/callback`;
-    // Shopee không trả lại "state" → nhét state vào redirect URL
-    const authUrl = platform === 'shopee' ? await shopee.authUrl(env, `${cbUrl}?state=${state}`) : tiktok.authUrl(env, state);
+    // Shopee không trả lại "state" → nhét state vào redirect URL (qua relay thì relay chuyển tiếp nguyên query)
+    const authUrl = platform === 'shopee' ? await shopee.authUrl(env, `${shopeeRedirectBase(env, url)}?state=${state}`) : tiktok.authUrl(env, state);
     return J({ url: authUrl });
   }
 

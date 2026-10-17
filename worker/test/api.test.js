@@ -69,6 +69,27 @@ describe('Worker API', () => {
     expect(await userToken('pending@x.vn')).toBeUndefined(); // chưa duyệt → không có token
     expect((await call('/api/shops', { token: await userToken('khac@x.vn', 'approve', ['app-khac']) })).r.status).toBe(401);
   });
+  it('Shopee qua relay (SHOPEE_REDIRECT_URL): redirect trỏ relay, relay chuyển nguyên query → callback vẫn kiểm state', async () => {
+    env.SHOPEE_REDIRECT_URL = 'https://n8n.timikid.com/webhook/shopee-callback';
+    const t = await login();
+    const u = new URL((await call('/api/oauth/shopee/url', { method: 'POST', token: t })).j.url);
+    const redirect = new URL(u.searchParams.get('redirect'));
+    expect(redirect.origin + redirect.pathname).toBe('https://n8n.timikid.com/webhook/shopee-callback');
+    const state = redirect.searchParams.get('state'); expect(state).toMatch(/^[0-9a-f]{32}$/);
+    // Shopee thêm code & shop_id vào redirect; relay 302 chuyển nguyên query sang Worker
+    const relayed = `/oauth/shopee/callback?${new URLSearchParams({ state, code: 'C1', shop_id: '555' })}`;
+    const bad = await handle(req(`/oauth/shopee/callback?state=gia-mao&code=C1&shop_id=555`), env, fakeFetch);
+    expect(bad.headers.get('location')).toContain('loi_state');
+    const cb = await handle(req(relayed), env, fakeFetch);
+    expect(cb.headers.get('location')).toBe(ORIGIN + '/#ket-noi=ok_shopee');
+    expect((await handle(req(relayed), env, fakeFetch)).headers.get('location')).toContain('loi_state'); // dùng 1 lần
+  });
+  it('TikTok dùng service_id khi có', async () => {
+    env.TIKTOK_SERVICE_ID = '7643091412851197713';
+    const u = new URL((await call('/api/oauth/tiktok/url', { method: 'POST', token: await login() })).j.url);
+    expect(u.origin + u.pathname).toBe('https://services.tiktokshop.com/open/authorize');
+    expect(u.searchParams.get('service_id')).toBe('7643091412851197713'); expect(u.searchParams.get('state')).toBeTruthy();
+  });
   it('origin lạ gọi API → 403', async () => {
     const { r, j } = await call('/api/shops', { origin: 'https://evil.example' });
     expect(r.status).toBe(403); expect(j.error).toBe('forbidden_origin');
