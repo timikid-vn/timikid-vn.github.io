@@ -184,3 +184,30 @@ body[data-platform=tiktok] .plat button.on{border-color:#111;background:#f4f4f6;
 .fee{grid-template-columns:auto 1fr 100px}
 @media(max-width:639px){.rate-in{flex-basis:104px}.rate-in input{font-size:16px}}
 .rate-in i{transform:translateY(-40%)}
+
+/* ---- chọn shop ---- */
+.toprow{flex-wrap:nowrap}
+.shop-btn{display:flex;align-items:center;gap:6px;height:40px;padding:0 12px;border-radius:99px;border:1.5px dashed var(--line);background:#fff;font:inherit;font-size:13px;font-weight:700;color:var(--ink);cursor:pointer;margin-right:auto;margin-left:2px}
+.shop-btn:hover{border-color:var(--acc)}
+.shop-dialog{width:min(560px,94vw)}
+.shop-dialog #shopBody{overflow:auto}
+.sc-empty{padding:18px;border-radius:12px;background:#fff8e6;color:#6b4a00}.sc-empty p{margin:6px 0 10px}
+.sc-msg{padding:10px 12px;border-radius:10px;background:#e8f7ee;color:#0e7a3c;font-size:13.5px;margin:0 0 10px}.sc-msg.err{background:#fdecec;color:#b42318}
+.sc-list{display:flex;flex-direction:column;gap:6px;margin-bottom:12px}
+.sc-shop{display:flex;align-items:center;gap:6px;border:1px solid var(--line);border-radius:12px;padding:4px 6px}
+.sc-pick{flex:1;min-width:0;display:flex;align-items:center;gap:10px;border:0;background:none;padding:8px 6px;font:inherit;text-align:left;cursor:pointer;color:var(--ink)}
+.sc-pick span{display:flex;flex-direction:column;min-width:0}.sc-pick b{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.sc-pick small{color:var(--muted);font-size:12px}
+.sc-pick i{margin-left:auto;font-style:normal;color:var(--muted)}
+.sc-mall{display:flex;align-items:center;gap:6px;margin:0;font-size:12px;color:var(--muted)}
+.sc-x{border:0;background:#f1f2f7;border-radius:50%;width:36px;height:36px;cursor:pointer;color:var(--muted)}
+.sc-actions{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.sc-connect{display:flex;align-items:center;justify-content:center;gap:8px;min-height:44px;border-radius:12px;border:1.5px solid var(--line);background:#fff;font:inherit;font-weight:700;font-size:13.5px;cursor:pointer;color:var(--ink)}
+.sc-connect:disabled{opacity:.55;cursor:not-allowed}.sc-connect small{font-weight:500;color:var(--muted)}
+.sc-foot{margin-top:10px}
+.sc-login{display:flex;flex-direction:column;gap:8px}
+.btn{min-height:44px;border:0;border-radius:12px;background:var(--acc);color:#fff;font:inherit;font-weight:700;cursor:pointer}
+.sc-head{display:flex;align-items:center;gap:10px;margin-bottom:6px}
+.sc-prods{display:flex;flex-direction:column;max-height:55vh;overflow:auto;margin-top:6px}
+.sc-prod{display:flex;justify-content:space-between;gap:10px;align-items:center;min-height:44px;border:0;border-bottom:1px solid var(--line);background:none;padding:8px 4px;font:inherit;font-size:14px;text-align:left;cursor:pointer;color:var(--ink)}
+.sc-prod b{color:var(--acc);white-space:nowrap}.sc-prod:hover{background:#fff6f3}
+@media(max-width:639px){.shop-dialog{width:100vw;max-width:100vw}.shop-btn span{display:none}.shop-btn{width:44px;justify-content:center;padding:0}.sc-actions{grid-template-columns:1fr}}

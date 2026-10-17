@@ -14,6 +14,9 @@ jobs:
       - run: npm ci
       - run: npm test
       - run: npm run build
+        env:
+          # URL Worker kết nối sàn (Settings → Variables → SHOP_API_URL). Trống = hiện “Chưa cấu hình kết nối”.
+          VITE_SHOP_API: ${{ vars.SHOP_API_URL }}
       - uses: actions/upload-pages-artifact@v3
         with: { path: dist }
   deploy:
