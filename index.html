@@ -1,0 +1,54 @@
+<!doctype html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8" /><meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Tính Lãi Lỗ Shopee & TikTok Shop</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+</head>
+<body>
+<header class="hero"><div class="wrap">
+  <h1>Tính Lãi Lỗ <span>Shopee</span> & <span class="tt">TikTok Shop</span></h1>
+  <p>Nhập giá vốn, giá bán, chi phí — biết ngay tiền về, lãi lỗ và giá hòa vốn.</p>
+</div></header>
+<main class="wrap grid">
+  <section class="col">
+    <div class="card">
+      <h2>1. Sàn & loại shop</h2>
+      <div class="seg" id="platform"><button data-v="shopee">🛍️ Shopee</button><button data-v="tiktok">🎵 TikTok Shop</button></div>
+      <div class="seg" id="shopType"><button data-v="0">Shop thường</button><button data-v="1">Shop Mall</button></div>
+      <label>Danh mục ngành hàng<select id="category"></select></label>
+      <label>Phí cố định / hoa hồng ngành (%) <span id="catBadge" class="badge"></span>
+        <div class="suffix"><input id="commissionRate" inputmode="decimal" /><i>%</i></div></label>
+      <small id="catNote" class="muted"></small>
+    </div>
+    <div class="card">
+      <h2>2. Giá & chi phí sản phẩm</h2>
+      <div class="two">
+        <label>Giá bán<div class="suffix"><input class="money" id="price" inputmode="numeric" placeholder="0"/><i>₫</i></div></label>
+        <label>Giá vốn<div class="suffix"><input class="money" id="cost" inputmode="numeric" placeholder="0"/><i>₫</i></div></label>
+        <label>Giảm giá / voucher của shop<div class="suffix"><input class="money" id="discount" inputmode="numeric" placeholder="0"/><i>₫</i></div></label>
+        <label>Đóng gói<div class="suffix"><input class="money" id="packaging" inputmode="numeric" placeholder="0"/><i>₫</i></div></label>
+        <label>Hỗ trợ phí ship<div class="suffix"><input class="money" id="shipping" inputmode="numeric" placeholder="0"/><i>₫</i></div></label>
+        <label>Chi phí khác / đơn<div class="suffix"><input class="money" id="otherCost" inputmode="numeric" placeholder="0"/><i>₫</i></div></label>
+      </div>
+    </div>
+    <div class="card">
+      <h2>3. Nhân sự & quảng cáo</h2>
+      <label>Số đơn dự kiến / tháng<div class="suffix"><input class="money" id="ordersPerMonth" inputmode="numeric" placeholder="VD: 500"/><i>đơn</i></div></label>
+      <div id="staffBox"></div><div id="adsBox"></div>
+    </div>
+    <div class="card">
+      <h2>4. Phí sàn & tùy chọn <button id="resetFees" class="link">↺ Khôi phục mặc định</button></h2>
+      <p class="muted">Bật/tắt và sửa trực tiếp mức phí. ⚠️ = chưa xác minh từ nguồn chính thức.</p>
+      <div id="fees"></div>
+    </div>
+  </section>
+  <section class="col sticky">
+    <div class="card result" id="result"></div>
+    <div class="card"><h2>Chi tiết phí</h2><table id="breakdown"></table></div>
+    <div class="card"><h2>Nguồn biểu phí</h2><ul id="sources" class="muted"></ul>
+      <p class="muted">Biểu phí tra cứu ngày 17/10/2026. Sàn có thể thay đổi — hãy đối chiếu Kênh Người Bán.</p></div>
+  </section>
+</main>
+<script type="module" src="/src/main.js"></script>
+</body></html>
