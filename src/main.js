@@ -3,7 +3,7 @@ import { CATEGORIES, PLATFORM_FEES, TAX, SOURCES } from './fees.js';
 import { calculate, fmtVND, parseVND, fmtThousands } from './calc.js';
 import { shopeeCategories, SHOPEE_FIXED_SOURCES } from './shopeeCategories.js';
 
-const KEY = 'spc-state-v2'; // v2: ngành Shopee đầy đủ từ PDF, bỏ Freeship Xtra
+const KEY = 'spc-state-v3'; // v2: ngành Shopee đầy đủ từ PDF, bỏ Freeship Xtra
 const $ = (id) => document.getElementById(id);
 const defaultFees = () => ({ shopee: [...PLATFORM_FEES.shopee, TAX].map((f) => ({ ...f })), tiktok: [...PLATFORM_FEES.tiktok, TAX].map((f) => ({ ...f })) });
 const blank = { platform: 'shopee', shopType: 0, cats: {}, catSearch: '', rateOverride: {}, values: {}, staff: { mode: 'monthly', value: '' }, ads: { mode: 'percent', value: '' }, fees: defaultFees() };
@@ -24,6 +24,7 @@ const DEFAULT_CAT = { shopee: 'Thời Trang Nữ|Áo|Áo sơ mi', tiktok: 'thoit
 const catKey = () => `${S.platform}-${S.shopType}-${cat().key}`;
 const defRate = () => cat();
 
+const PN = () => (S.platform === 'shopee' ? 'Shopee' : 'TikTok');
 function renderSeg(id, val) { $(id).querySelectorAll('button').forEach((b) => b.classList.toggle('on', b.dataset.v == val)); }
 
 function renderStatic() {
@@ -66,7 +67,7 @@ function renderFees() {
   $('fees').innerHTML = S.fees[S.platform].map((f, i) => `
     <div class="fee ${f.on ? '' : 'off'}">
       <label class="switch"><input type="checkbox" data-fee="${i}" ${f.on ? 'checked' : ''}/><span></span></label>
-      <div class="fname">${f.verified ? '' : '⚠️ '}${f.name}${f.cap ? `<small> (tối đa ${fmtVND(f.cap)})</small>` : ''}</div>
+      <div class="fname">${f.verified ? '' : '⚠️ '}${f.name}${f.cap ? `<small> (tối đa ${fmtVND(f.cap)})</small>` : ''}${f.note ? `<small class="muted" style="display:block;font-weight:400">${f.note}</small>` : ''}</div>
       <div class="suffix mini"><input data-feeval="${i}" inputmode="decimal" value="${f.type === 'fixed' ? fmtThousands(f.value) : f.value}"/><i>${f.type === 'fixed' ? '₫' : '%'}</i></div>
     </div>`).join('');
 }
@@ -86,7 +87,8 @@ function update() {
   $('result').innerHTML = `
     <div class="big ${pos ? 'pos' : 'neg'}"><span>${pos ? 'Lợi nhuận / đơn' : 'Lỗ / đơn'}</span><b>${fmtVND(r.profit)}</b></div>
     <div class="kpis">
-      <div><span>Tiền nhận về</span><b>${fmtVND(r.payout)}</b></div>
+      <div><span>Doanh thu ${PN()} ước tính</span><b>${fmtVND(r.revenue)}</b><small>so khớp màn hình sàn (trước thuế)</small></div>
+      <div><span>Thực nhận sau thuế</span><b>${fmtVND(r.payout)}</b><small>${r.tax ? 'thuế khấu trừ ' + fmtVND(r.tax) : 'không tính thuế'}</small></div>
       <div><span>Tổng phí sàn</span><b>${fmtVND(r.platformFees)}</b><small>${pct(r.feePct)} giá bán</small></div>
       <div><span>Biên lợi nhuận</span><b class="${pos ? 'tpos' : 'tneg'}">${pct(r.margin)}</b></div>
       <div><span>ROI</span><b class="${pos ? 'tpos' : 'tneg'}">${pct(r.roi)}</b></div>
@@ -98,7 +100,9 @@ function update() {
   $('breakdown').innerHTML = row('Giá bán', fmtVND(r.price)) +
     (r.discount ? row('− Giảm giá của shop', fmtVND(-r.discount)) : '') +
     r.lines.map((l) => row('− ' + l.name, fmtVND(-l.amount), 'fl', l.rate != null ? `(${l.rate}%)` : '')).join('') +
-    row('= Tiền nhận về', fmtVND(r.payout), 'sum') +
+    row(`= Doanh thu ${PN()} ước tính`, fmtVND(r.revenue), 'sum', '(như màn hình sàn, trước thuế)') +
+    r.taxLines.map((l) => row('− ' + l.name, fmtVND(-l.amount), 'fl', `(${l.rate}%)`)).join('') +
+    (r.taxLines.length ? row('= Thực nhận sau thuế', fmtVND(r.payout), 'sum') : '') +
     row('− Giá vốn', fmtVND(-r.cost)) + row('− Đóng gói, ship, khác', fmtVND(-r.other)) +
     row('− Nhân sự', fmtVND(-r.staff)) + row('− Quảng cáo', fmtVND(-r.ads)) +
     row(pos ? '= Lợi nhuận' : '= Lỗ', fmtVND(r.profit), 'sum ' + (pos ? 'tpos' : 'tneg'));

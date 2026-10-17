@@ -24,15 +24,18 @@ export function calculate(input) {
   const price = num(input.price);
   const discount = Math.min(num(input.discount), price);
   const base = price - discount; // giá sau giảm của shop – cơ sở tính phí
-  const lines = [];
+  const lines = [], taxLines = [];
   lines.push({ name: 'Phí cố định / hoa hồng ngành hàng', rate: num(input.commissionRate), amount: percentFee(base, input.commissionRate) });
   for (const f of input.fees || []) {
     if (!f.on) continue;
     const amount = f.type === 'percent' ? percentFee(base, f.value, f.cap) : (base > 0 ? Math.round(num(f.value)) : 0);
-    lines.push({ name: f.name, rate: f.type === 'percent' ? num(f.value) : null, amount });
+    (f.isTax ? taxLines : lines).push({ name: f.name, rate: f.type === 'percent' ? num(f.value) : null, amount });
   }
+  // Mỗi dòng phí làm tròn tới đồng (như màn hình Shopee), rồi mới cộng.
   const platformFees = lines.reduce((s, l) => s + l.amount, 0);
-  const payout = base - platformFees;
+  const revenue = base - platformFees; // "Doanh thu đơn hàng ước tính" trên màn hình sàn (trước thuế)
+  const tax = taxLines.reduce((s, l) => s + l.amount, 0);
+  const payout = revenue - tax; // thực nhận sau thuế khấu trừ
 
   const staff = costPerOrder(input.staff, base, input.ordersPerMonth);
   const ads = costPerOrder(input.ads, base, input.ordersPerMonth);
@@ -44,7 +47,7 @@ export function calculate(input) {
   const profitBeforeAds = profit + ads;
 
   return {
-    price, discount, base, lines, platformFees, payout,
+    price, discount, base, lines, platformFees, revenue, taxLines, tax, payout,
     cost, other, staff, ads, totalCost, profit,
     margin: base > 0 ? (profit / base) * 100 : 0,
     roi: cost + other + staff + ads > 0 ? (profit / totalCost) * 100 : 0,
