@@ -3,7 +3,7 @@ import { CATEGORIES, PLATFORM_FEES, TAX, SOURCES } from './fees.js';
 import { calculate, fmtVND, parseVND, fmtThousands } from './calc.js';
 import { shopeeCategories, SHOPEE_FIXED_SOURCES } from './shopeeCategories.js';
 
-const KEY = 'spc-state-v3'; // v2: ngành Shopee đầy đủ từ PDF, bỏ Freeship Xtra
+const KEY = 'spc-state-v4'; // v2: ngành Shopee đầy đủ từ PDF, bỏ Freeship Xtra
 const $ = (id) => document.getElementById(id);
 const defaultFees = () => ({ shopee: [...PLATFORM_FEES.shopee, TAX].map((f) => ({ ...f })), tiktok: [...PLATFORM_FEES.tiktok, TAX].map((f) => ({ ...f })) });
 const blank = { platform: 'shopee', shopType: 0, cats: {}, catSearch: '', rateOverride: {}, values: {}, staff: { mode: 'monthly', value: '' }, ads: { mode: 'percent', value: '' }, fees: defaultFees() };

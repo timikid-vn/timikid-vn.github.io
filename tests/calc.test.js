@@ -19,10 +19,10 @@ describe('calculate', () => {
   });
   it('Shopee regular typical order', () => {
     const r = calculate({ price: 200000, cost: 100000, commissionRate: 14, fees: shopeeFees });
-    // phí sàn: 14% 28000 + 6% 12000 + 3000 + NTTD 1,08% 2160 = 45160; thuế 1,5% 3000 tách riêng
-    expect(r.platformFees).toBe(45160); expect(r.revenue).toBe(154840); expect(r.tax).toBe(3000);
-    expect(r.payout).toBe(151840); expect(r.profit).toBe(51840);
-    expect(r.margin).toBeCloseTo(25.92); expect(r.roi).toBeCloseTo(51.84);
+    // phí sàn: 14% 28000 + 6% 12000 + 3000 = 43000; thuế 1,5% 3000 tách riêng
+    expect(r.platformFees).toBe(43000); expect(r.revenue).toBe(157000); expect(r.tax).toBe(3000);
+    expect(r.payout).toBe(154000); expect(r.profit).toBe(54000);
+    expect(r.margin).toBeCloseTo(27); expect(r.roi).toBeCloseTo(54);
   });
   it('price < cost -> loss', () => {
     const r = calculate({ price: 50000, cost: 80000, commissionRate: 14, fees: shopeeFees });
