@@ -1,28 +1,68 @@
 import './style.css';
 import { CATEGORIES, PLATFORM_FEES, TAX, SOURCES } from './fees.js';
 import { calculate, fmtVND, parseVND, fmtThousands } from './calc.js';
-import { shopeeCategories, SHOPEE_FIXED_SOURCES } from './shopeeCategories.js';
+import { shopeeCategories } from './shopeeCategories.js';
+import { buildTree, walk, leaves, searchLeaves } from './categoryTree.js';
 
-const KEY = 'spc-state-v4'; // v2: ngành Shopee đầy đủ từ PDF, bỏ Freeship Xtra
+const KEY = 'spc-state-v5'; // v2: ngành Shopee đầy đủ từ PDF, bỏ Freeship Xtra
 const $ = (id) => document.getElementById(id);
 const defaultFees = () => ({ shopee: [...PLATFORM_FEES.shopee, TAX].map((f) => ({ ...f })), tiktok: [...PLATFORM_FEES.tiktok, TAX].map((f) => ({ ...f })) });
-const blank = { platform: 'shopee', shopType: 0, cats: {}, catSearch: '', rateOverride: {}, values: {}, staff: { mode: 'monthly', value: '' }, ads: { mode: 'percent', value: '' }, fees: defaultFees() };
+const blank = { platform: 'shopee', shopType: 0, catPath: null, rateOverride: {}, values: {}, staff: { mode: 'monthly', value: '' }, ads: { mode: 'percent', value: '' }, fees: defaultFees() };
 let S;
 try { S = { ...blank, ...JSON.parse(localStorage.getItem(KEY) || '{}') }; } catch { S = { ...blank }; }
 const save = () => localStorage.setItem(KEY, JSON.stringify(S));
 
-// Danh sách ngành theo sàn + loại shop: [{key, group, name, rate, verified, note}]
+// Cây ngành theo sàn + loại shop (Shopee: tới 3 cấp từ PDF; TikTok: 1 cấp)
 const SP = { 0: shopeeCategories('regular'), 1: shopeeCategories('mall') };
-const norm = (t) => String(t).normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/đ/gi, 'd').toLowerCase();
-function catList() {
-  if (S.platform === 'shopee') return SP[S.shopType].map((c) => ({ key: c.key, group: c.l1, name: c.path, rate: c.rate, verified: true, note: c.note }));
-  return CATEGORIES.map((c) => ({ key: c.id, group: 'TikTok Shop', name: c.name, ...c.tiktok[S.shopType] }));
+const TREES = {};
+function tree() {
+  const k = `${S.platform}-${S.shopType}`;
+  if (!TREES[k]) {
+    TREES[k] = buildTree(S.platform === 'shopee'
+      ? SP[S.shopType].map((c) => ({ path: [c.l1, c.l2, c.l3].filter(Boolean), rate: c.rate, verified: true, note: c.note, key: c.key }))
+      : CATEGORIES.map((c) => ({ path: [c.name], key: c.id, ...c.tiktok[S.shopType] })));
+  }
+  return TREES[k];
 }
-const catSelKey = () => `${S.platform}-${S.shopType}`;
-const cat = () => { const l = catList(); return l.find((c) => c.key === S.cats?.[catSelKey()]) || l.find((c) => c.key === DEFAULT_CAT[S.platform]) || l[0]; };
-const DEFAULT_CAT = { shopee: 'Thời Trang Nữ|Áo|Áo sơ mi', tiktok: 'thoitrang' };
-const catKey = () => `${S.platform}-${S.shopType}-${cat().key}`;
-const defRate = () => cat();
+const DEFAULT_PATH = { shopee: ['Thời Trang Nữ', 'Áo', 'Áo sơ mi'], tiktok: [CATEGORIES.find((c) => c.id === 'thoitrang').name] };
+const PICK = { mobileDepth: null };
+// Đường dẫn đang chọn cho sàn hiện tại (chung cho thường/Mall — chuyển loại shop giữ nếu tồn tại)
+const curPath = () => (S.catPath?.[S.platform] ?? DEFAULT_PATH[S.platform]);
+function selection() {
+  const { nodes, complete } = walk(tree(), curPath());
+  const last = nodes[nodes.length - 1];
+  return { nodes, leaf: complete && last?.leaf ? last.leaf : null };
+}
+function setPath(p) { S.catPath = { ...(S.catPath || {}), [S.platform]: p }; }
+const cat = () => selection().leaf;
+const catKey = () => `${S.platform}-${S.shopType}-${cat()?.key}`;
+const esc = (t) => String(t).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/"/g, '&quot;');
+
+function renderPicker() {
+  const { nodes, leaf } = selection();
+  const q = $('catSearch').value.trim();
+  const root = tree();
+  $('catCount').textContent = `(${leaves(root).length.toLocaleString("vi-VN")})`;
+  if (q) {
+    const res = searchLeaves(root, q);
+    $('catCols').innerHTML = `<div class="cat-results">${res.length ? res.map((r) => `<button type="button" class="cat-res" data-path="${esc(JSON.stringify(r.path))}">${r.path.map(esc).join(' <span>›</span> ')}<b>${r.node.leaf.rate}%</b></button>`).join('') : '<p class="muted">Không tìm thấy ngành phù hợp.</p>'}</div>`;
+    $('catCols').dataset.mode = 'search';
+  } else {
+    $('catCols').dataset.mode = 'cols';
+    const cols = [root, ...nodes.filter((n) => !n.leaf)];
+    const depth = cols.length - 1;
+    const md = PICK.mobileDepth == null ? depth : Math.min(PICK.mobileDepth, depth);
+    $('catCols').innerHTML = cols.map((col, i) => `<div class="cat-col ${i === md ? 'm-show' : ''}" data-depth="${i}">
+      ${i > 0 ? `<button type="button" class="cat-back" data-back="${i - 1}">‹ ${esc(col.name)}</button>` : ''}
+      ${col.children.map((c) => `<button type="button" class="cat-item ${nodes[i] === c ? 'on' : ''}" data-depth="${i}" data-name="${esc(c.name)}"><span>${esc(c.name)}</span>${c.leaf ? '' : '<i>›</i>'}</button>`).join('')}
+    </div>`).join('');
+    const sel = $('catCols').querySelectorAll('.cat-item.on'); sel.forEach((b) => b.scrollIntoView?.({ block: 'nearest', inline: 'nearest' }));
+    const last = $('catCols').lastElementChild; if (last && window.innerWidth >= 640) $('catCols').scrollLeft = $('catCols').scrollWidth;
+  }
+  $('catCrumb').innerHTML = nodes.length ? `Đã chọn: <b>${nodes.map((n) => esc(n.name)).join(' &gt; ')}</b>` : 'Đã chọn: <span class="muted">chưa chọn</span>';
+  $('rateBox').hidden = !leaf; $('catHint').hidden = !!leaf;
+  if (!leaf) $('catHint').textContent = nodes.length ? `Chọn tiếp tới cấp cuối cùng của “${nodes[nodes.length - 1].name}” để xem phí cố định.` : 'Chọn ngành hàng tới cấp cuối cùng để xem phí cố định.';
+}
 
 const PN = () => (S.platform === 'shopee' ? 'Shopee' : 'TikTok');
 function renderSeg(id, val) { $(id).querySelectorAll('button').forEach((b) => b.classList.toggle('on', b.dataset.v == val)); }
@@ -30,24 +70,15 @@ function renderSeg(id, val) { $(id).querySelectorAll('button').forEach((b) => b.
 function renderStatic() {
   document.body.dataset.platform = S.platform;
   renderSeg('platform', S.platform); renderSeg('shopType', S.shopType);
-  renderCatOptions();
-  const d = defRate();
-  $('commissionRate').value = S.rateOverride[catKey()] ?? d.rate;
-  $('catBadge').textContent = d.verified ? '✓ đã xác minh' : '⚠️ chưa xác minh';
-  $('catBadge').className = 'badge ' + (d.verified ? 'ok' : 'warn');
-  $('catNote').textContent = `${d.group !== 'TikTok Shop' ? d.group + ' › ' : ''}${d.name} — mặc định ${d.rate}%${d.note ? ' (' + d.note + ')' : ''}`;
+  renderPicker();
+  const d = cat();
+  $('commissionRate').value = d ? (S.rateOverride[catKey()] ?? d.rate) : '';
+  if (d) {
+    $('catBadge').textContent = d.verified ? '✓ đã xác minh' : '⚠️ chưa xác minh';
+    $('catBadge').className = 'badge ' + (d.verified ? 'ok' : 'warn');
+    $('catNote').textContent = `Mặc định ${d.rate}%${d.note ? ' (' + d.note + ')' : ''}`;
+  }
   renderFees();
-}
-
-function renderCatOptions() {
-  const q = norm($('catSearch').value || '');
-  const cur = cat();
-  const list = catList().filter((c) => !q || norm(c.group + ' ' + c.name).includes(q) || c.key === cur.key);
-  const groups = new Map();
-  for (const c of list) { if (!groups.has(c.group)) groups.set(c.group, []); groups.get(c.group).push(c); }
-  const esc = (t) => String(t).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/"/g, '&quot;');
-  $('category').innerHTML = [...groups].map(([g, items]) => `<optgroup label="${esc(g)}">${items.map((c) => `<option value="${esc(c.key)}" ${c.key === cur.key ? 'selected' : ''}>${esc(c.name)} — ${c.rate}%</option>`).join('')}</optgroup>`).join('');
-  $('catCount').textContent = q ? `${list.length} kết quả` : `${catList().length} ngành hàng`;
 }
 
 function costBox(key, label) {
@@ -79,7 +110,7 @@ function readInputs() {
 
 function update() {
   S.values = readInputs();
-  const rate = Number(String($('commissionRate').value).replace(',', '.')) || 0;
+  const rate = cat() ? Number(String($('commissionRate').value).replace(',', '.')) || 0 : 0;
   const r = calculate({ ...S.values, commissionRate: rate, fees: S.fees[S.platform], staff: S.staff, ads: S.ads });
   save();
   const pos = r.profit >= 0;
@@ -112,7 +143,12 @@ function update() {
 document.addEventListener('click', (e) => {
   const b = e.target.closest('button'); if (!b) return;
   const seg = b.parentElement;
-  if (seg.id === 'platform') { S.platform = b.dataset.v; renderStatic(); }
+  if (b.classList.contains('cat-item')) {
+    const d = Number(b.dataset.depth); setPath([...curPath().slice(0, d), b.dataset.name]);
+    PICK.mobileDepth = null; renderStatic();
+  } else if (b.dataset.back != null) { PICK.mobileDepth = Number(b.dataset.back); renderPicker(); return; }
+  else if (b.classList.contains('cat-res')) { setPath(JSON.parse(b.dataset.path)); $('catSearch').value = ''; PICK.mobileDepth = null; renderStatic(); }
+  else if (seg.id === 'platform') { S.platform = b.dataset.v; PICK.mobileDepth = null; renderStatic(); }
   else if (seg.id === 'shopType') { S.shopType = Number(b.dataset.v); renderStatic(); }
   else if (seg.dataset.cost) { S[seg.dataset.cost] = { mode: b.dataset.v, value: '' }; renderCosts(); }
   else if (b.id === 'resetFees') { S.fees[S.platform] = defaultFees()[S.platform]; delete S.rateOverride[catKey()]; renderStatic(); }
@@ -126,8 +162,7 @@ document.addEventListener('input', (e) => {
     t.value = fmtThousands(t.value);
     const p = Math.max(0, t.value.length - fromEnd); t.setSelectionRange(p, p);
   }
-  if (t.id === 'category') { S.cats = { ...S.cats, [catSelKey()]: t.value }; renderStatic(); }
-  if (t.id === 'catSearch') { renderCatOptions(); return; }
+  if (t.id === 'catSearch') { renderPicker(); return; }
   if (t.id === 'commissionRate') S.rateOverride[catKey()] = t.value;
   if (t.dataset.costval) S[t.dataset.costval].value = t.classList.contains('money') ? parseVND(t.value) : t.value.replace(',', '.');
   if (t.dataset.fee) { S.fees[S.platform][t.dataset.fee].on = t.checked; t.closest('.fee').classList.toggle('off', !t.checked); }
