@@ -4,7 +4,7 @@ import { calculate, fmtVND, parseVND, fmtThousands } from './calc.js';
 import { shopeeCategories } from './shopeeCategories.js';
 import { buildTree, walk, leaves, searchLeaves } from './categoryTree.js';
 
-const KEY = 'spc-state-v6'; // v2: ngành Shopee đầy đủ từ PDF, bỏ Freeship Xtra
+const KEY = 'spc-state-v7'; // v2: ngành Shopee đầy đủ từ PDF, bỏ Freeship Xtra
 const $ = (id) => document.getElementById(id);
 const defaultFees = () => ({ shopee: [...PLATFORM_FEES.shopee, TAX].map((f) => ({ ...f })), tiktok: [...PLATFORM_FEES.tiktok, TAX].map((f) => ({ ...f })) });
 const blank = { platform: 'shopee', shopType: 0, catPath: null, rateOverride: {}, values: {}, opex: { mode: 'vnd', value: '' }, ads: { mode: 'percent', value: '' }, fees: defaultFees() };
@@ -72,7 +72,7 @@ function renderSeg(id, val) { $(id).querySelectorAll('button').forEach((b) => b.
 
 function renderStatic() {
   document.body.dataset.platform = S.platform;
-  renderSeg('platform', S.platform); renderSeg('shopType', S.shopType);
+  renderSeg('platform', S.platform); $('mallToggle').checked = S.shopType === 1;
   renderPicker();
   const d = cat();
   $('commissionRate').value = d ? (S.rateOverride[catKey()] ?? d.rate) : '';
@@ -122,15 +122,21 @@ function update() {
   $('result').innerHTML = `
     <div class="big ${pos ? 'pos' : 'neg'}"><span>${pos ? 'Lợi nhuận / đơn' : 'Lỗ / đơn'}</span><b>${fmtVND(r.profit)}</b></div>
     <div class="kpis">
-      <div><span>Doanh thu ${PN()} ước tính</span><b>${fmtVND(r.revenue)}</b><small>so khớp màn hình sàn (trước thuế)</small></div>
-      <div><span>Thực nhận sau thuế</span><b>${fmtVND(r.payout)}</b><small>${r.tax ? 'thuế khấu trừ ' + fmtVND(r.tax) : 'không tính thuế'}</small></div>
-      <div><span>Tổng phí sàn</span><b>${fmtVND(r.platformFees)}</b><small>${pct(r.feePct)} giá bán</small></div>
+      <div class="w2"><span>Doanh thu ${PN()} ước tính <em>(trước thuế)</em></span><b>${fmtVND(r.revenue)}</b></div>
+      <div class="w2"><span>Thực nhận sau thuế</span><b>${fmtVND(r.payout)}</b><small>${r.tax ? 'thuế ' + fmtVND(r.tax) : 'không tính thuế'}</small></div>
+      <div><span>Phí sàn</span><b>${fmtVND(r.platformFees)}</b><small>${pct(r.feePct)}</small></div>
       <div><span>Biên lợi nhuận</span><b class="${pos ? 'tpos' : 'tneg'}">${pct(r.margin)}</b></div>
       <div><span>ROI</span><b class="${pos ? 'tpos' : 'tneg'}">${pct(r.roi)}</b></div>
-      <div><span>Giá bán hòa vốn</span><b>${r.price || r.cost ? fmtVND(r.breakEvenPrice) : '—'}</b></div>
+      <div><span>Giá hòa vốn</span><b>${r.price || r.cost ? fmtVND(r.breakEvenPrice) : '—'}</b></div>
       <div><span>ROAS hòa vốn</span><b>${r.breakEvenRoas ? r.breakEvenRoas.toLocaleString('vi-VN', { maximumFractionDigits: 2 }) : '—'}</b></div>
-      ${r.monthlyProfit != null ? `<div class="wide"><span>Lãi/lỗ dự kiến mỗi tháng (${S.values.ordersPerMonth.toLocaleString('vi-VN')} đơn)</span><b class="${r.monthlyProfit >= 0 ? 'tpos' : 'tneg'}">${fmtVND(r.monthlyProfit)}</b><small>Doanh thu ${fmtVND(r.monthlyRevenue)}</small></div>` : ''}
+      ${r.monthlyProfit != null ? `<div class="wide"><span>Lãi/lỗ mỗi tháng (${S.values.ordersPerMonth.toLocaleString('vi-VN')} đơn)</span><b class="${r.monthlyProfit >= 0 ? 'tpos' : 'tneg'}">${fmtVND(r.monthlyProfit)}</b><small>Doanh thu ${fmtVND(r.monthlyRevenue)}</small></div>` : ''}
     </div>`;
+  $('mbar').innerHTML = `<span>${pos ? 'Lãi' : 'Lỗ'}/đơn</span><b class="${pos ? 'tpos' : 'tneg'}">${fmtVND(r.profit)}</b><small>Biên ${pct(r.margin)} · Thực nhận ${fmtVND(r.payout)}</small><i>⌄</i>`;
+  const on = S.fees[S.platform].filter((f) => f.on && !f.isTax);
+  const pctSum = on.filter((f) => f.type === 'percent').reduce((a, f) => a + Number(f.value || 0), 0);
+  const fixSum = on.filter((f) => f.type === 'fixed').reduce((a, f) => a + Number(f.value || 0), 0);
+  const taxF = S.fees[S.platform].find((f) => f.isTax && f.on);
+  $('feeSummary').textContent = `${(rate + pctSum).toLocaleString('vi-VN', { maximumFractionDigits: 2 })}%${fixSum ? ' + ' + fixSum.toLocaleString('vi-VN') + '₫' : ''} · thuế ${taxF ? taxF.value + '%' : 'tắt'} · ${fmtVND(r.platformFees + r.tax)}`;
   const row = (n, a, cls = '', note = '') => `<tr class="${cls}"><td>${n}${note ? `<small> ${note}</small>` : ''}</td><td>${a}</td></tr>`;
   $('breakdown').innerHTML = row('Giá bán', fmtVND(r.price)) +
     r.lines.map((l) => row('− ' + l.name, fmtVND(-l.amount), 'fl', l.rate != null ? `(${l.rate}%)` : '')).join('') +
@@ -154,7 +160,7 @@ document.addEventListener('click', (e) => {
   } else if (b.dataset.back != null) { PICK.mobileDepth = Number(b.dataset.back); renderPicker(); return; }
   else if (b.classList.contains('cat-res')) { setPath(JSON.parse(b.dataset.path)); $('catSearch').value = ''; PICK.mobileDepth = null; renderStatic(); $('catDialog').close(); }
   else if (seg.id === 'platform') { S.platform = b.dataset.v; PICK.mobileDepth = null; renderStatic(); }
-  else if (seg.id === 'shopType') { S.shopType = Number(b.dataset.v); renderStatic(); }
+  else if (b.id === 'mbar') { $('result').scrollIntoView({ behavior: 'smooth', block: 'start' }); return; }
   else if (b.id === 'resetFees') { S.fees[S.platform] = defaultFees()[S.platform]; delete S.rateOverride[catKey()]; renderStatic(); }
   else return;
   update();
@@ -183,7 +189,10 @@ if (!S.values?.price) { $('price').value = '199.000'; $('cost').value = '90.000'
 $('sources').innerHTML = Object.values(SOURCES).map((s) => `<li><a href="${s.url}" target="_blank" rel="noopener">${s.title}</a> — hiệu lực ${s.effective}</li>`).join('');
 $('catDialog').addEventListener('click', (e) => { if (e.target === $('catDialog')) $('catDialog').close(); });
 document.addEventListener('change', (e) => {
+  if (e.target.id === 'mallToggle') { S.shopType = e.target.checked ? 1 : 0; renderStatic(); update(); return; }
   const k = e.target.dataset?.costmode; if (!k) return;
   S[k] = { mode: e.target.value, value: '' }; renderCosts(); update();
 });
 renderStatic(); renderCosts(); update();
+// Ẩn thanh lãi/lỗ dính đáy khi khối kết quả đã hiện trên màn hình
+if ('IntersectionObserver' in window) new IntersectionObserver(([e]) => $('mbar').classList.toggle('hide', e.isIntersecting), { threshold: 0.3 }).observe($('result'));
