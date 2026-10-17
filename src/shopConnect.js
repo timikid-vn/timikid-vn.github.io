@@ -25,7 +25,8 @@ export function initShopConnect({ apply }) {
   async function render() {
     if (!API) return set(notReady());
     try { status = status || (await api('/api/status')); } catch { return set(notReady('<br/>(Không liên lạc được máy chủ kết nối.)')); }
-    if (!status.ready || (!status.shopee && !status.tiktok)) return set(notReady());
+    if (!status.ready) return set(notReady());
+    if (!token() && status.login === false) return set(`<div class="sc-empty"><b>Đăng nhập đang tắt</b><p class="muted">Máy chủ kết nối đã chạy nhưng chưa đặt mật khẩu chủ shop.${!status.shopee && !status.tiktok ? ' Khóa app Shopee / TikTok Shop cũng đang chờ sàn duyệt.' : ''}</p></div>`);
     if (!token()) {
       return set(`<form id="scLogin" class="sc-login"><label>Mật khẩu chủ shop<input type="password" id="scPass" autocomplete="current-password" required/></label><button class="btn" type="submit">Đăng nhập</button><p class="muted">Chỉ chủ shop mới xem được dữ liệu shop.</p></form>`);
     }

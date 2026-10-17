@@ -1,9 +1,12 @@
-# Cloudflare Worker cho tính năng "Chọn shop". CHƯA deploy.
+# Cloudflare Worker cho tính năng "Chọn shop".
+# Đã deploy: https://timikid-shop-connect.timikid-vn.workers.dev
 # Bí mật nhập bằng: npx wrangler secret put <TÊN> (không ghi vào file này).
 #   OWNER_PASSWORD, SESSION_SECRET, TOKEN_ENC_KEY (32 byte base64),
 #   SHOPEE_PARTNER_ID, SHOPEE_PARTNER_KEY, TIKTOK_APP_KEY, TIKTOK_APP_SECRET, (tùy chọn) TIKTOK_SERVICE_ID
 name = "timikid-shop-connect"
 main = "src/index.js"
+workers_dev = true
+account_id = "221d1e5c092be128eec2e830e6652c06"
 compatibility_date = "2026-10-01"
 
 [vars]
@@ -13,4 +16,4 @@ FRONTEND_URL = "https://timikid-vn.github.io/"
 
 [[kv_namespaces]]
 binding = "SHOPS"
-id = "THAY_BANG_ID_KV_SAU_KHI_TAO"   # npx wrangler kv namespace create SHOPS
+id = "2e380072fdc1497482790229486dea14"

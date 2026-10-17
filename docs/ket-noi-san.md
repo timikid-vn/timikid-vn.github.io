@@ -12,7 +12,11 @@ Dành cho anh Duy. Đọc từ trên xuống, làm lần lượt từng bước.
 |---|---|---|---|
 | 1 | Đăng ký tài khoản nhà phát triển Shopee và tạo app loại **Seller In House System** | https://open.shopee.com | Hồ sơ: tối đa **7 ngày làm việc**. App lên Live: khoảng **24 giờ** |
 | 2 | Đăng ký **TikTok Shop Partner Center** (loại *TikTok Shop Seller*) và tạo **Custom App** | https://partner.tiktokshop.com | Seller đã xác minh thường được **duyệt tự động/ngay**. Nếu bị chuyển sang duyệt tay thì mất vài ngày làm việc |
-| 3 | Tạo tài khoản **Cloudflare** miễn phí (để chạy máy chủ kết nối nhỏ, gọi là “Worker”) | https://dash.cloudflare.com/sign-up | Không cần chờ |
+| 3 | ✅ **Cloudflare: đã xong.** Máy chủ kết nối đang chạy tại https://timikid-shop-connect.timikid-vn.workers.dev | — | — |
+
+**Hai địa chỉ callback (Redirect URL) chính thức để nhập khi tạo app:**
+- Shopee: `https://timikid-shop-connect.timikid-vn.workers.dev/oauth/shopee/callback`
+- TikTok Shop: `https://timikid-shop-connect.timikid-vn.workers.dev/oauth/tiktok/callback`
 
 > 🔒 **Bảo mật — quan trọng:** các mã bí mật (Partner Key của Shopee, App Secret của TikTok, mật khẩu chủ shop) **anh sẽ nhập qua một form bảo mật em gửi riêng, tuyệt đối KHÔNG dán vào khung chat**, không gửi qua Zalo, email hay ảnh chụp màn hình. Các mã này chỉ nằm trong phần “Secrets” của Cloudflare. Trình duyệt và trang web công khai không bao giờ nhìn thấy chúng, cũng không thấy token của shop.
 
@@ -44,11 +48,11 @@ Dành cho anh Duy. Đọc từ trên xuống, làm lần lượt từng bước.
    - **Test Partner ID** và **Test Partner Key**: dùng để thử nghiệm (sandbox).
    - Khi app được **Go Live** sẽ có **Live Partner ID** và **Live Partner Key**.
    - ⚠️ *Partner Key* là **mã bí mật**. Anh chỉ nhập mã này vào form bảo mật.
-6. Ở mục **Redirect URL / Callback URL / Domain**, nhập địa chỉ em gửi cho anh, có dạng:
+6. Ở mục **Redirect URL / Callback URL / Domain**, nhập địa chỉ sau:
    ```
-   https://timikid-shop-connect.<ten-tai-khoan>.workers.dev/oauth/shopee/callback
+   https://timikid-shop-connect.timikid-vn.workers.dev/oauth/shopee/callback
    ```
-   (Nếu chỉ có ô *domain* thì nhập `timikid-shop-connect.<ten-tai-khoan>.workers.dev`.)
+   (Nếu chỉ có ô *domain* thì nhập `timikid-shop-connect.timikid-vn.workers.dev`.)
 7. Bấm **Go Live** (xin đưa app lên chính thức). Thường mất khoảng **24 giờ**.
 8. Khi app đã Live, mở web app → **Chọn shop → Kết nối Shopee**. Trang chính thức của Shopee sẽ mở ra, anh đăng nhập shop và bấm **Xác nhận ủy quyền**. Có nhiều shop thì lặp lại cho từng shop.
    - Mỗi lần ủy quyền có hiệu lực tối đa **1 năm**. Hết hạn thì bấm Kết nối lại.
@@ -76,7 +80,7 @@ Nguồn: [Hướng dẫn Shopee – Đăng ký Open Platform](https://banhang.sh
    - App chỉ đọc, không cần quyền sửa đơn hay sửa sản phẩm.
 5. Ở ô **Redirect URL (Callback URL)**, nhập:
    ```
-   https://timikid-shop-connect.<ten-tai-khoan>.workers.dev/oauth/tiktok/callback
+   https://timikid-shop-connect.timikid-vn.workers.dev/oauth/tiktok/callback
    ```
 6. Ghi lại các thông tin sau:
    - **App key**: không bí mật.
@@ -89,24 +93,17 @@ Nguồn: [Partner Center docs – Sign your API request](https://partner.tiktoks
 
 ---
 
-## 3. Cloudflare (máy chủ kết nối, miễn phí)
+## 3. Cloudflare (máy chủ kết nối) — ✅ đã xong
 
-1. Vào https://dash.cloudflare.com/sign-up, đăng ký bằng email và xác minh email. Gói **Free** là đủ.
-2. Vào **Workers & Pages** một lần để chọn tên miền phụ `<ten-tai-khoan>.workers.dev`. Gửi tên này cho em.
-3. Để em cài đặt (deploy), em cần **một trong hai cách** sau. Em sẽ hỏi trước khi làm:
-   - **Cách A (đơn giản):** em mở trang đăng nhập Cloudflare trên máy của em, anh tự đăng nhập. Em không bao giờ thấy mật khẩu của anh.
-   - **Cách B:** anh tạo **API Token** (My Profile → API Tokens → *Create Token* → mẫu **“Edit Cloudflare Workers”**) rồi nhập vào **form bảo mật**. Không dán token vào chat.
-4. Sau đó em sẽ làm phần kỹ thuật:
-   - tạo kho lưu trữ KV;
-   - nhập các secrets bằng lệnh `wrangler secret put`;
-   - deploy Worker;
-   - gắn địa chỉ Worker vào trang web (biến `SHOP_API_URL` của repo GitHub).
-
-Token của shop (access/refresh token) được **mã hóa AES-256** trước khi lưu vào KV và tự **làm mới** trước khi hết hạn:
-- Shopee: token 4 giờ, refresh token 30 ngày.
-- TikTok: token khoảng 7 ngày.
-
----
+- Tài khoản: Cloudflare của anh, gói Free. Tên miền phụ: `timikid-vn.workers.dev`.
+- Worker `timikid-shop-connect` đang chạy tại https://timikid-shop-connect.timikid-vn.workers.dev.
+- Kho KV `SHOPS` đã tạo. Hai khóa nội bộ `SESSION_SECRET` và `TOKEN_ENC_KEY` đã được sinh ngẫu nhiên và nạp thẳng vào Cloudflare Secrets. Không ai xem hay in các khóa này ra.
+- Còn thiếu (đã cài sẵn chế độ an toàn):
+  - **Mật khẩu chủ shop**: chưa đặt nên **đăng nhập đang tắt**, và không ai xem được dữ liệu.
+  - **Khóa app Shopee / TikTok**: chưa có nên nút Kết nối báo “đang chờ sàn duyệt app”.
+- Token của shop (access/refresh token) được **mã hóa AES-256** trước khi lưu và tự **làm mới** trước khi hết hạn:
+  - Shopee: token 4 giờ, refresh token 30 ngày.
+  - TikTok: token khoảng 7 ngày.
 
 ## 4. Những gì anh gửi lại cho em
 
@@ -114,14 +111,12 @@ Token của shop (access/refresh token) được **mã hóa AES-256** trước k
 - [ ] Đã duyệt hồ sơ Shopee chưa / app đã Live chưa.
 - [ ] **Shopee Partner ID** (Test và/hoặc Live).
 - [ ] **TikTok App key**, và **Service ID** nếu có.
-- [ ] Tên miền phụ Cloudflare `<ten-tai-khoan>.workers.dev`.
 - [ ] Shop nào là **Mall** (sau khi kết nối anh cũng có thể tự bật/tắt công tắc Mall cạnh từng shop).
 
 **Chỉ nhập qua form bảo mật, KHÔNG gửi trong chat:**
 - [ ] **Shopee Partner Key**.
 - [ ] **TikTok App secret**.
 - [ ] **Mật khẩu chủ shop** cho app (anh tự đặt, nên dài từ 12 ký tự). Mật khẩu này dùng để đăng nhập nút “Chọn shop”, để người lạ không xem được dữ liệu shop.
-- [ ] (Nếu dùng Cách B) **Cloudflare API Token**.
 
 Hai khóa nội bộ `SESSION_SECRET` và `TOKEN_ENC_KEY` sẽ được em sinh ngẫu nhiên và nạp thẳng vào Cloudflare. Không ai cần xem hai khóa này.
 

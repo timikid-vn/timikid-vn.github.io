@@ -10,8 +10,16 @@ const STATE_TTL = 600;
 const configured = (env) => ({
   shopee: !!(env.SHOPEE_PARTNER_ID && env.SHOPEE_PARTNER_KEY),
   tiktok: !!(env.TIKTOK_APP_KEY && env.TIKTOK_APP_SECRET),
-  ready: !!(env.OWNER_PASSWORD && env.SESSION_SECRET && env.TOKEN_ENC_KEY && env.SHOPS),
+  // lõi: khóa phiên + khóa mã hóa + KV. Mật khẩu chủ shop chưa đặt → chỉ tắt đăng nhập.
+  ready: !!(env.SESSION_SECRET && env.TOKEN_ENC_KEY && env.SHOPS),
+  login: !!env.OWNER_PASSWORD,
 });
+const MSG = {
+  login_disabled: 'Chưa đặt mật khẩu chủ shop (OWNER_PASSWORD) — đăng nhập đang tắt.',
+  platform_not_configured: 'Chưa cấu hình khóa app của sàn này — đang chờ sàn duyệt app.',
+  not_configured: 'Máy chủ kết nối chưa được cấu hình.',
+  forbidden_origin: 'Nguồn (origin) không được phép.',
+};
 
 function cors(env, req) {
   const origin = req.headers.get('origin');
@@ -67,11 +75,16 @@ export async function handle(req, env, fetchFn = fetch) {
   const J = (d, s) => json(env, req, d, s);
   if (req.method === 'OPTIONS') return new Response(null, { status: 204, headers: cors(env, req) });
   const cfg = configured(env);
+  const E = (error, status) => J({ error, message: MSG[error] }, status);
+  // Gọi API từ trang web khác → từ chối hẳn (không chỉ thiếu header CORS)
+  const origin = req.headers.get('origin');
+  if (p.startsWith('/api/') && origin && !cors(env, req)['access-control-allow-origin']) return E('forbidden_origin', 403);
 
-  if (p === '/api/status') return J({ ...cfg, ok: true });
-  if (!cfg.ready) return J({ error: 'not_configured' }, 503);
+  if (p === '/api/status' || p === '/health' || p === '/') return J({ ...cfg, ok: true });
+  if (!cfg.ready) return E('not_configured', 503);
 
   if (p === '/api/login' && req.method === 'POST') {
+    if (!cfg.login) return E('login_disabled', 503);
     const body = await req.json().catch(() => ({}));
     if (!safeEqual(body.password, env.OWNER_PASSWORD)) { await new Promise((r) => setTimeout(r, 400)); return J({ error: 'sai_mat_khau' }, 401); }
     return J({ token: await makeSession(env.SESSION_SECRET, SESSION_TTL), expiresIn: SESSION_TTL });
@@ -110,12 +123,13 @@ export async function handle(req, env, fetchFn = fetch) {
   }
 
   if (!p.startsWith('/api/')) return J({ error: 'not_found' }, 404);
-  if (!(await authed(env, req))) return J({ error: 'unauthorized' }, 401);
-
   const start = p.match(/^\/api\/oauth\/(shopee|tiktok)\/url$/);
+  // Thiếu khóa app của sàn → báo rõ ngay (thông tin này vốn công khai ở /api/status)
+  if (start && !cfg[start[1]]) return E('platform_not_configured', 409);
+  if (!(await authed(env, req))) return E('unauthorized', 401);
+
   if (start && req.method === 'POST') {
     const platform = start[1];
-    if (!cfg[platform]) return J({ error: 'platform_not_configured' }, 409);
     const state = randomId();
     await env.SHOPS.put(`state:${platform}:${state}`, '1', { expirationTtl: STATE_TTL });
     const cbUrl = `${url.origin}/oauth/${platform}/callback`;

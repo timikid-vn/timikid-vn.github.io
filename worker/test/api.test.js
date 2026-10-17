@@ -43,6 +43,19 @@ const login = async () => (await call('/api/login', { method: 'POST', body: { pa
 beforeEach(() => { env = mkEnv(); calls = []; });
 
 describe('Worker API', () => {
+  it('chưa đặt OWNER_PASSWORD → đăng nhập tắt, báo rõ; chưa có khóa sàn → platform_not_configured', async () => {
+    env = { ...mkEnv(), OWNER_PASSWORD: undefined, SHOPEE_PARTNER_KEY: undefined, TIKTOK_APP_SECRET: undefined };
+    expect((await call('/api/status')).j).toMatchObject({ ready: true, login: false, shopee: false, tiktok: false });
+    const l = await call('/api/login', { method: 'POST', body: { password: '' } });
+    expect(l.r.status).toBe(503); expect(l.j.error).toBe('login_disabled'); expect(l.j.message).toMatch(/mật khẩu/);
+    expect((await call('/api/login', { method: 'POST', body: {} })).r.status).toBe(503);
+    expect((await call('/api/shops')).r.status).toBe(401);
+    for (const pl of ['shopee', 'tiktok']) { const o = await call(`/api/oauth/${pl}/url`, { method: 'POST' }); expect(o.r.status).toBe(409); expect(o.j.error).toBe('platform_not_configured'); }
+  });
+  it('origin lạ gọi API → 403', async () => {
+    const { r, j } = await call('/api/shops', { origin: 'https://evil.example' });
+    expect(r.status).toBe(403); expect(j.error).toBe('forbidden_origin');
+  });
   it('status công khai; chưa cấu hình → 503 not_configured', async () => {
     expect((await call('/api/status')).j.shopee).toBe(true);
     env = { ALLOWED_ORIGIN: ORIGIN };
