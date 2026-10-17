@@ -175,3 +175,12 @@ body[data-platform=tiktok] .plat button.on{border-color:#111;background:#f4f4f6;
 }
 .fold>summary b{white-space:nowrap}
 .mbar.hide{opacity:0;pointer-events:none;transform:translateY(20px)}.mbar{transition:.2s}
+
+/* không cắt số thập phân trong ô % */
+.rate-in{flex:0 0 112px}
+.rate-in input{font-size:17px;padding:8px 26px 8px 10px;text-align:left;letter-spacing:-.2px}
+.rate-in i{right:9px}
+.mini input{padding:6px 24px 6px 8px}.mini i{right:8px}
+.fee{grid-template-columns:auto 1fr 100px}
+@media(max-width:639px){.rate-in{flex-basis:104px}.rate-in input{font-size:16px}}
+.rate-in i{transform:translateY(-40%)}

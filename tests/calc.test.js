@@ -19,10 +19,15 @@ describe('calculate', () => {
   });
   it('Shopee regular typical order', () => {
     const r = calculate({ price: 200000, cost: 100000, commissionRate: 14, fees: shopeeFees });
-    // phí sàn: 14% 28000 + 6% 12000 + 3000 = 43000; thuế 1,5% 3000 tách riêng
-    expect(r.platformFees).toBe(43000); expect(r.revenue).toBe(157000); expect(r.tax).toBe(3000);
-    expect(r.payout).toBe(154000); expect(r.profit).toBe(54000);
-    expect(r.margin).toBeCloseTo(27); expect(r.roi).toBeCloseTo(54);
+    // phí sàn: 14% 28000 + 6% 12000 + 3000 + Voucher Xtra 5,5% 11000 (mặc định BẬT) = 54000; thuế 1,5% 3000 tách riêng
+    expect(r.platformFees).toBe(54000); expect(r.revenue).toBe(146000); expect(r.tax).toBe(3000);
+    expect(r.payout).toBe(143000); expect(r.profit).toBe(43000);
+    expect(r.margin).toBeCloseTo(21.5); expect(r.roi).toBeCloseTo(43);
+  });
+  it('Voucher Xtra mặc định BẬT cho cả Shopee & TikTok (trần 50.000₫)', () => {
+    const s = PLATFORM_FEES.shopee.find((f) => f.id === 'voucherXtra'), t = PLATFORM_FEES.tiktok.find((f) => f.id === 'xtraVoucher');
+    expect([s.on, s.value, s.cap]).toEqual([true, 5.5, 50000]);
+    expect([t.on, t.cap]).toEqual([true, 50000]);
   });
   it('price < cost -> loss', () => {
     const r = calculate({ price: 50000, cost: 80000, commissionRate: 14, fees: shopeeFees });

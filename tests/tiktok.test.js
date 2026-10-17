@@ -35,10 +35,10 @@ describe('TikTok – biểu phí hoa hồng từ PDF', () => {
     [['Đồ nội thất', 'Nội thất trong nhà', 'Tủ'], 13.2, 14],
     [['Trẻ sơ sinh & thai sản', 'Vật tư cho mẹ', 'Quần áo cho bé bú'], 13.5, 16.1],
   ])('%j → thường %s%%, Mall %s%%', (p, r, m) => { expect(rate(reg, p)).toBe(r); expect(rate(mall, p)).toBe(m); });
-  it('phí giao dịch 6% + xử lý đơn 3.000₫, làm tròn từng dòng', () => {
+  it('phí giao dịch 6% + xử lý đơn 3.000₫ + Voucher Xtra 4% (mặc định bật), làm tròn từng dòng', () => {
     const r = calculate({ price: 199999, commissionRate: 15.5, fees: PLATFORM_FEES.tiktok.map((f) => ({ ...f })) });
-    expect(r.lines.map((l) => l.amount)).toEqual([31000, 12000, 3000]);
-    expect(r.revenue).toBe(199999 - 46000);
+    expect(r.lines.map((l) => l.amount)).toEqual([31000, 12000, 3000, 8000]);
+    expect(r.revenue).toBe(199999 - 54000);
   });
   it('Voucher Xtra (nếu bật) bị chặn trần 50.000₫', () => {
     const fees = PLATFORM_FEES.tiktok.map((f) => ({ ...f, on: f.id === 'xtraVoucher' }));

@@ -65,13 +65,13 @@ export const PLATFORM_FEES = {
   shopee: [
     { id: 'transaction', name: 'Phí xử lý giao dịch (phí thanh toán)', type: 'percent', value: 6, cap: 0, on: true, verified: true },
     { id: 'infra', name: 'Phí hạ tầng', type: 'fixed', value: 3000, on: true, verified: true },
-    { id: 'voucherXtra', name: 'Gói Voucher Xtra', type: 'percent', value: 5.5, cap: 50000, on: false, verified: true },
+    { id: 'voucherXtra', name: 'Gói Voucher Xtra', type: 'percent', value: 5.5, cap: 50000, on: true, verified: true },
     { id: 'piship', name: 'PiShip (tiết kiệm vận chuyển)', type: 'fixed', value: 2700, on: false, verified: true },
   ],
   tiktok: [
     { id: 'transaction', name: 'Phí giao dịch (từ 09/05/2026, đã gồm thuế)', type: 'percent', value: 6, cap: 0, on: true, verified: true },
     { id: 'processing', name: 'Phí xử lý đơn hàng (từ 27/10/2025, đã gồm thuế, mỗi đơn)', type: 'fixed', value: 3000, on: true, verified: true },
-    { id: 'xtraVoucher', name: 'Chương trình Voucher/Freeship Xtra (ước tính – không có trong nguồn chính thức)', type: 'percent', value: 4, cap: 50000, on: false, verified: false },
+    { id: 'xtraVoucher', name: 'Chương trình Voucher/Freeship Xtra (ước tính – không có trong nguồn chính thức)', type: 'percent', value: 4, cap: 50000, on: true, verified: false },
     { id: 'affiliate', name: 'Hoa hồng Affiliate (KOC/KOL)', type: 'percent', value: 10, cap: 0, on: false, verified: false, note: 'Tự đặt theo thỏa thuận' },
   ],
 };

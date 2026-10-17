@@ -5,7 +5,7 @@ import { shopeeCategories } from './shopeeCategories.js';
 import { tiktokCategories } from './tiktokCategories.js';
 import { buildTree, walk, leaves, searchLeaves } from './categoryTree.js';
 
-const KEY = 'spc-state-v8'; // v2: ngành Shopee đầy đủ từ PDF, bỏ Freeship Xtra
+const KEY = 'spc-state-v9'; // v2: ngành Shopee đầy đủ từ PDF, bỏ Freeship Xtra
 const $ = (id) => document.getElementById(id);
 const defaultFees = () => ({ shopee: [...PLATFORM_FEES.shopee, TAX].map((f) => ({ ...f })), tiktok: [...PLATFORM_FEES.tiktok, TAX].map((f) => ({ ...f })) });
 const blank = { platform: 'shopee', shopType: 0, catPath: null, rateOverride: {}, values: {}, opex: { mode: 'vnd', value: '' }, ads: { mode: 'percent', value: '' }, fees: defaultFees() };
@@ -47,7 +47,7 @@ function renderPicker() {
   $('catCount').textContent = $('catCount2').textContent = `(${leaves(root).length.toLocaleString("vi-VN")})`;
   if (q) {
     const res = searchLeaves(root, q);
-    $('catCols').innerHTML = `<div class="cat-results">${res.length ? res.map((r) => `<button type="button" class="cat-res" data-path="${esc(JSON.stringify(r.path))}">${r.path.map(esc).join(' <span>›</span> ')}<b>${r.node.leaf.rate}%</b></button>`).join('') : '<p class="muted">Không tìm thấy ngành phù hợp.</p>'}</div>`;
+    $('catCols').innerHTML = `<div class="cat-results">${res.length ? res.map((r) => `<button type="button" class="cat-res" data-path="${esc(JSON.stringify(r.path))}">${r.path.map(esc).join(' <span>›</span> ')}<b>${vn(r.node.leaf.rate)}%</b></button>`).join('') : '<p class="muted">Không tìm thấy ngành phù hợp.</p>'}</div>`;
     $('catCols').dataset.mode = 'search';
   } else {
     $('catCols').dataset.mode = 'cols';
@@ -69,6 +69,8 @@ function renderPicker() {
   if (!leaf) $('catHint').textContent = nodes.length ? `Chọn tiếp tới cấp cuối cùng của “${nodes[nodes.length - 1].name}” để xem phí cố định.` : 'Chọn ngành hàng tới cấp cuối cùng để xem phí cố định.';
 }
 
+// số thập phân kiểu Việt Nam: 18.8 → '18,8'
+const vn = (v) => String(v ?? '').replace('.', ',');
 const PN = () => (S.platform === 'shopee' ? 'Shopee' : 'TikTok');
 function renderSeg(id, val) { $(id).querySelectorAll('button').forEach((b) => b.classList.toggle('on', b.dataset.v == val)); }
 
@@ -77,11 +79,11 @@ function renderStatic() {
   renderSeg('platform', S.platform); $('mallToggle').checked = S.shopType === 1;
   renderPicker();
   const d = cat();
-  $('commissionRate').value = d ? (S.rateOverride[catKey()] ?? d.rate) : '';
+  $('commissionRate').value = d ? vn(S.rateOverride[catKey()] ?? d.rate) : '';
   if (d) {
     $('catBadge').textContent = d.verified ? '✓ đã xác minh' : '⚠️ chưa xác minh';
     $('catBadge').className = 'badge ' + (d.verified ? 'ok' : 'warn');
-    $('catNote').textContent = `Mặc định ${d.rate}%${d.note ? ' (' + d.note + ')' : ''}`;
+    $('catNote').textContent = `Mặc định ${vn(d.rate)}%${d.note ? ' (' + d.note + ')' : ''}`;
   }
   renderFees();
 }
@@ -89,7 +91,7 @@ function renderStatic() {
 const MODES = { vnd: '₫/đơn', percent: '% giá', monthly: '₫/tháng' };
 function costBox(key, label) {
   const c = S[key], pct = c.mode === 'percent';
-  return `<label>${label}<div class="suffix sel"><input data-costval="${key}" class="${pct ? '' : 'money'}" inputmode="${pct ? 'decimal' : 'numeric'}" value="${pct ? c.value : fmtThousands(c.value)}" placeholder="0"/>
+  return `<label>${label}<div class="suffix sel"><input data-costval="${key}" class="${pct ? '' : 'money'}" inputmode="${pct ? 'decimal' : 'numeric'}" value="${pct ? vn(c.value) : fmtThousands(c.value)}" placeholder="0"/>
     <select data-costmode="${key}" aria-label="Đơn vị">${Object.entries(MODES).map(([k, v]) => `<option value="${k}" ${k === c.mode ? 'selected' : ''}>${v}</option>`).join('')}</select></div></label>`;
 }
 function renderCosts() {
@@ -105,7 +107,7 @@ function renderFees() {
     <div class="fee ${f.on ? '' : 'off'}">
       <label class="switch"><input type="checkbox" data-fee="${i}" ${f.on ? 'checked' : ''}/><span></span></label>
       <div class="fname">${f.verified ? '' : '⚠️ '}${f.name}${f.cap ? `<small> (tối đa ${fmtVND(f.cap)})</small>` : ''}${f.note ? `<small class="muted" style="display:block;font-weight:400">${f.note}</small>` : ''}</div>
-      <div class="suffix mini"><input data-feeval="${i}" inputmode="decimal" value="${f.type === 'fixed' ? fmtThousands(f.value) : f.value}"/><i>${f.type === 'fixed' ? '₫' : '%'}</i></div>
+      <div class="suffix mini"><input data-feeval="${i}" inputmode="decimal" value="${f.type === 'fixed' ? fmtThousands(f.value) : vn(f.value)}"/><i>${f.type === 'fixed' ? '₫' : '%'}</i></div>
     </div>`).join('');
 }
 
@@ -138,12 +140,12 @@ function update() {
   const pctSum = on.filter((f) => f.type === 'percent').reduce((a, f) => a + Number(f.value || 0), 0);
   const fixSum = on.filter((f) => f.type === 'fixed').reduce((a, f) => a + Number(f.value || 0), 0);
   const taxF = S.fees[S.platform].find((f) => f.isTax && f.on);
-  $('feeSummary').textContent = `${(rate + pctSum).toLocaleString('vi-VN', { maximumFractionDigits: 2 })}%${fixSum ? ' + ' + fixSum.toLocaleString('vi-VN') + '₫' : ''} · thuế ${taxF ? taxF.value + '%' : 'tắt'} · ${fmtVND(r.platformFees + r.tax)}`;
+  $('feeSummary').textContent = `${(rate + pctSum).toLocaleString('vi-VN', { maximumFractionDigits: 2 })}%${fixSum ? ' + ' + fixSum.toLocaleString('vi-VN') + '₫' : ''} · thuế ${taxF ? vn(taxF.value) + '%' : 'tắt'} · ${fmtVND(r.platformFees + r.tax)}`;
   const row = (n, a, cls = '', note = '') => `<tr class="${cls}"><td>${n}${note ? `<small> ${note}</small>` : ''}</td><td>${a}</td></tr>`;
   $('breakdown').innerHTML = row('Giá bán', fmtVND(r.price)) +
-    r.lines.map((l) => row('− ' + l.name, fmtVND(-l.amount), 'fl', l.rate != null ? `(${l.rate}%)` : '')).join('') +
+    r.lines.map((l) => row('− ' + l.name, fmtVND(-l.amount), 'fl', l.rate != null ? `(${vn(l.rate)}%)` : '')).join('') +
     row(`= Doanh thu ${PN()} ước tính`, fmtVND(r.revenue), 'sum', '(như màn hình sàn, trước thuế)') +
-    r.taxLines.map((l) => row('− ' + l.name, fmtVND(-l.amount), 'fl', `(${l.rate}%)`)).join('') +
+    r.taxLines.map((l) => row('− ' + l.name, fmtVND(-l.amount), 'fl', `(${vn(l.rate)}%)`)).join('') +
     (r.taxLines.length ? row('= Thực nhận sau thuế', fmtVND(r.payout), 'sum') : '') +
     row('− Giá vốn', fmtVND(-r.cost)) + row('− Nhân sự & đóng gói', fmtVND(-r.opex)) + row('− Quảng cáo', fmtVND(-r.ads)) +
     row(pos ? '= Lợi nhuận' : '= Lỗ', fmtVND(r.profit), 'sum ' + (pos ? 'tpos' : 'tneg'));
