@@ -1,0 +1,67 @@
+{
+  "name": "TikTok OAuth relay → timikid-shop-connect",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "GET",
+        "path": "tiktok-auth",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "b2f0c0de-0001-4000-8000-000000000001",
+      "name": "TikTok callback",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        0,
+        0
+      ],
+      "webhookId": "7c1d9e4b-2a3f-4b61-8c9d-0123456789ac"
+    },
+    {
+      "parameters": {
+        "respondWith": "noData",
+        "options": {
+          "responseCode": 302,
+          "responseHeaders": {
+            "entries": [
+              {
+                "name": "Location",
+                "value": "={{ 'https://timikid-shop-connect.timikid-vn.workers.dev/oauth/tiktok/callback?' + Object.entries($json.query || {}).map(([k, v]) => encodeURIComponent(k) + '=' + encodeURIComponent(Array.isArray(v) ? v[0] : String(v))).join('&') }}"
+              },
+              {
+                "name": "Cache-Control",
+                "value": "no-store"
+              }
+            ]
+          }
+        }
+      },
+      "id": "b2f0c0de-0002-4000-8000-000000000002",
+      "name": "302 → Worker",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [
+        260,
+        0
+      ]
+    }
+  ],
+  "connections": {
+    "TikTok callback": {
+      "main": [
+        [
+          {
+            "node": "302 → Worker",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1",
+    "saveDataSuccessExecution": "none"
+  }
+}
