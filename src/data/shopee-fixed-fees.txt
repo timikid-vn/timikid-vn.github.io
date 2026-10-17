@@ -1,0 +1,700 @@
+# Biểu Phí Cố Định Shopee (đã bao gồm thuế GTGT 8%)
+# Shop thường: "Phí cố định áp dụng từ 23/05/2026" (47 trang, 1439 dòng)
+# Shop Mall:   "Phí cố định áp dụng từ 29/05/2026" (44 trang, 1656 dòng)
+# Cú pháp: "= L1" ngành cấp 1 | "- L2" ngành cấp 2 (thêm "|thường|mall" nếu là lá) |
+#          "L3; L3; ...|thường|mall" các ngành cấp 3 có cùng mức phí.
+# Khối !shared = dòng 1–1315 (giống nhau ở 2 file). !regular / !mall = phần riêng (1 mức phí).
+!shared
+= Máy tính & Laptop
+- Máy Tính Bàn
+Máy Tính All in one|2.5|3.8
+Bộ Máy Tính Bàn|2|3.8
+Máy Tính Mini|2.5|3.8
+Khác|2.5|9.5
+Máy Chủ|2.5|3.8
+- Laptop|2|3.8
+- Màn Hình|2|8.3
+= Điện Thoại & Phụ Kiện
+- Điện thoại|2|2.5
+- Máy tính bảng|2|3.8
+= Thiết Bị Âm Thanh
+- Amply và đầu chỉnh âm|12|14.6
+- Cáp âm thanh/ video & Đầu chuyển|12|15.5
+- Tai nghe nhét tai & chụp tai|12|16.7
+- Dàn âm thanh
+Thu sóng AV|12|16.7
+Hệ thống âm thanh giải trí tại gia|10|14.6
+Khác|12|16.7
+Loa|12|15.5
+- Máy nghe nhạc
+CD, DVD & Bluray; MP3 & MP4; Khác; Radio & Cát-sét; Máy ghi âm|10|15.5
+- Micro thu âm|12|16.7
+- Khác|12|16.7
+= Cameras & Flycam
+- Phụ kiện máy ảnh
+Đế pin; Bộ sạc pin; Túi đựng máy ảnh; Phụ kiện đèn Flash; Đèn Flash; Tay cầm chống rung; Thiết bị ánh sáng và phòng chụp; Khác; Giấy & phim in ảnh; Máy in ảnh; Chân máy ảnh|11|15.7
+- Phụ kiện chăm sóc máy ảnh
+Bóng thổi bụi; Bộ vệ sinh máy ảnh; Tủ & hộp chống ẩm; Bút lau & bàn chải làm sạch ống kính; Khác; Gói hút ẩm|13|17.7
+- Máy ảnh
+Máy quay hành động|7.5|8.3
+Máy ảnh film|7.5|13.5
+Máy ảnh cơ/DSLRs; Máy ảnh chụp lấy liền; Máy ảnh không gương lật|7.5|8.3
+Khác|7.5|13.5
+Máy ảnh kỹ thuật số|7.5|8.3
+Máy quay phim|7|12.6
+- Phụ kiện Flycam|10|15.7
+- Flycam|9|12
+- Phụ kiện ống kính
+Kính lọc; Nắp ống kính; Loa che sáng ống kính; Ngàm ống kính & Ngàm chuyển đổi ống; Khác|13|17.7
+- Ống kính|8|8.3
+- Khác|12|16.7
+- Camera giám sát
+Camera giám sát kết nối internet; Camera giả chống trộm; Đầu ghi hình; Khác; Camera ngụy trang|9|14.5
+= Máy tính & Laptop
+- Thiết Bị Lưu Trữ
+Đĩa CD; USB & OTG; Thiết Bị Đựng Ổ Cứng; Ổ Cứng Di Động; Ổ Cứng Mạng (NAS); Khác|9|14.5
+Ổ Cứng SSD|9|12.5
+- Linh Kiện Máy Tính
+Quạt và Tản Nhiệt; VGA - Card Màn Hình; Mainboard - Bo Mạch Chủ; Ổ Đĩa Quang; Khác; Case Máy Tính; Nguồn Máy Tính|7.5|13.5
+CPU - Bộ Vi Xử Lý|7.5|8.3
+Ram Máy Tính; Bo Mạch Âm Thanh; Keo Tản Nhiệt|7.5|13.5
+Bộ Lưu Điện|7.5|11.5
+- Chuột & Bàn Phím
+Bảng Vẽ Điện Tử|6|8.6
+Bàn Phím Máy Tính; Chuột Máy Tính; Khác|11|15.7
+- Thiết Bị Mạng
+Bộ Chuyển Mạch KVM|9|14.5
+Bộ Phát Wifi|11|17.7
+Cáp Máy Tính; Bộ chia mạng; Khác; Bộ Chuyển Đổi Mạng; Máy Chủ Máy In; Bộ Kích Wifi; Bộ Thu Wifi|9|14.5
+- Thiết Bị Văn Phòng
+Máy Chấm Công; Máy Đếm Tiền; Khác; Máy Hủy Tài Liệu; Máy Đánh Chữ|11|15.7
+- Khác|12|16.7
+- Phụ Kiện Máy Tính
+Đế Tản Nhiệt; Miếng Dán Bàn Phím; Pin Laptop; Bộ Sạc Laptop; Miếng Dán & Ốp Laptop|9|14.5
+Bàn Laptop|11|16.5
+Bàn Di Chuột; Khác; Bộ chia cổng USB & Đọc thẻ nhớ; Thiết Bị Truyền Hình Hội Nghị; Webcam|9|14.5
+- Máy In & Máy Scan
+Máy In 3D|9|11
+Mực In & Khay Mực; Khác|9|14.5
+Máy In, Máy Scan & Máy Photo|9|10.5
+Máy In Mã Vạch|9|14.5
+- Phần Mềm|11|15.7
+= Gaming & Console
+- Phụ kiện console|11|15.7
+- Máy chơi game
+Game Gameboy; Nintendo DS; Khác|8.5|14.5
+Game Playstation|8.5|10.5
+PS Vita; PSP; Switch; Wii; Xbox|8.5|14.5
+- Khác|12|16.7
+- Video Games
+Game Gameboy; Nintendo DS; Khác; Game PC; Game Playstation; PS Vita; PSP; Switch; Wii; Xbox|11|15.7
+= Thiết Bị Điện Gia Dụng
+- Pin|11|15.7
+- Thuốc lá điện tử|13|16.7
+- Mạch điện & Phụ tùng
+Chuông cửa; Ổ cắm điện & Dây nối; Thiết bị an toàn điện tử; Thiết bị tiết kiệm điện|12|16.7
+Thiết bị báo động nhà ở|13|17.7
+Thiết bị chống sấm sét; Khác; Công tắc|12|16.7
+- Đồ gia dụng nhà bếp
+Nồi chiên không dầu; Máy pha cà phê & Phụ kiện; Nồi chiên ngập dầu|11|15.7
+Máy rửa bát đĩa|8|6.5
+Máy chế biến thực phẩm & Xay thịt|11|15.7
+Tủ đông|9|6.5
+Máy hút khói|10|9.3
+Máy ép, Xay sinh tố & Máy làm sữa đậu nành|11|15.7
+Ấm đun siêu tốc|13|17.7
+Lò vi sóng; Máy trộn thực phẩm; Nồi nấu đa năng; Khác; Lò nướng; Nồi áp suất|11|15.7
+Tủ lạnh|9|5.5
+Nồi cơm điện; Nồi nấu chậm & Dụng cụ nấu chân không; Dụng cụ nấu đặc biệt; Lò sưởi, Bếp từ & Bộ điều chỉnh gas; Máy nướng bánh|11|15.7
+Máy lọc nước|11|11
+Tủ ủ rượu|11|7.5
+- Thiết bị điện gia dụng lớn
+Thiết bị làm mát|10.5|9.5
+Thiết bị sấy khô nệm & Giày|9|10.5
+Máy sưởi|9|9.3
+Khác|9|7.5
+Máy giặt & Máy sấy|8.5|5.5
+Máy nước nóng|9|9.3
+- Khác|12|16.7
+- Máy chiếu & Phụ kiện
+Khác; Bút trình chiếu|11|15.7
+Máy chiếu & Màn hình chiếu|11|13.6
+- Thiết bị điều khiển từ xa|13|17.7
+- Thiết bị điện gia dụng nhỏ
+Thiết bị xử lý không khí|10|8.5
+Thiết bị vệ sinh chân & Thư giãn|11|17.7
+Bàn là khô & Hơi nước|10|15.5
+Khác|10|16.7
+Máy may & Phụ kiện|11|17.7
+Điện thoại; Máy hút bụi & Thiết bị làm sạch sàn|10|11.5
+Máy tăm nước|11|17.7
+- Tivi & Phụ kiện
+Khác; Ăng ten Tivi|8|14.7
+Tivi box & Đầu thu kỹ thuật số|8|12.6
+Giá treo tivi|11|17.7
+Tivi|7.5|3.8
+= Điện Thoại & Phụ Kiện
+- Phụ kiện
+Cáp, sạc & bộ chuyển đổi; Vỏ bao, Ốp lưng & Miếng dán|15|17.7
+Thiết bị trình chiếu; Thẻ nhớ|13|15.6
+Đèn flash điện thoại & Đèn selfie; Ống kính điện thoại; Túi đựng điện thoại; Khác; Kẹp điện thoại; Dây đeo điện thoại & Móc khóa; Bộ phát Wifi bỏ túi; Sạc dự phòng & Pin; Miếng dán màn hình; Phụ kiện selfie; Bút cảm ứng; Quạt USB & Quạt điện thoại; Đèn USB & Đèn điện thoại|15|17.7
+Phụ kiện cho đồng hồ thông minh|15|16.5
+- Khác|12|16.7
+- Thẻ sim|12|14.7
+- Bộ đàm|12|16.7
+- Thiết bị đeo thông minh
+Thiết bị định vị GPS; Khác|11|14.5
+Đồng hồ thông minh & Vòng đeo tay sức khỏe|11|12.5
+Thiết bị thực tế ảo|11|14.5
+= Voucher & Dịch vụ
+- Sức khỏe & Làm đẹp
+Nha khoa; Hỗ trợ tăng cơ; Salon tóc; Chăm sóc sức khỏe; Khác; Spa & Massage|13|14.6
+- Sự kiện & Giải trí
+Hòa nhạc & Triển lãm; Sự kiện & Hội thảo; Vé xem phim - Kịch; Khác; Công viên giải trí|13|14.6
+- Nhà hàng & Ăn uống
+Ăn tại chỗ & Mang đi; Giao thức ăn; Khác|13|14.6
+- Khóa học|13|14.6
+- Khác|13|14.6
+- Dịch vụ khác
+Lắp đặt sửa chữa máy lạnh; Giao & Vận chuyển hàng hóa; Thiết kế; Dọn dẹp nhà cửa; Bảo hiểm; Khác; Gói chụp hình|13|14.6
+- Mã quà tặng Shopee
+Digital Products; Khác; Shopee Official; Phí quảng cáo Shopee|13|14.6
+- Mua sắm
+Trung tâm thương mại; Khác; Siêu thị|13|14.6
+- Nạp tiền tài khoản
+Internet & Truyền hình cáp; Gói data 3G/4G; Nạp trực tiếp & Mua mã thẻ; Khác|13|14.6
+- Gọi xe|13|14.6
+- Du lịch & Khách sạn
+Đặt phòng; Vé xe buýt; Thuê phương tiện; Vé máy bay; Suối nước nóng; Khác; Tour du lịch; Vé tàu lửa|13|14.6
+- Thanh toán hóa đơn|13|14.6
+= Thời trang trẻ em & trẻ sơ sinh
+- Phụ kiện trẻ em & trẻ sơ sinh
+Túi xách & vali; Thắt lưng; Chụp tai; Kính mắt; Găng tay; Phụ kiện lông; Mũ & mũ lưỡi trai; Trang sức; Khác; Đồ đi mưa; Khăn; Tất; Đồng hồ|15.5|18.1
+- Quần áo trẻ em
+Bộ đồ liền thân; Bottoms; Dresses; Khác; Áo khoác nhẹ; Bộ Đồ Thể Thao; Đồ ngủ; Đồ bơi; Áo; Áo khoác mùa đông|16.5|19.1
+- Bao tay trẻ em & Tất|15.5|18.1
+- Quần áo bé trai
+Bottoms; Đồ hóa trang; Khác; Áo khoác; Đồ ngủ; Com lê & đồ bộ; Đồ bơi; Áo; Đồ lót|16.5|19.1
+- Giày bé trai
+Bốt; Dép xỏ ngón; Giày tây; Giày lười; Khác; Xăng-đan; Giày thể thao|15.5|18.1
+- Quần áo bé gái
+Bottoms; Đồ hóa trang; Dresses; Khác; Áo khoác; Đồ liền thân; Đồ ngủ; Com lê & đồ bộ; Đồ bơi; Áo; Đồ lót|16.5|19.1
+- Giày bé gái
+Bốt; Giày bệt; Dép xỏ ngón; Giày lười; Khác; Xăng-đan; Giày thể thao|15.5|18.1
+- Khác|16.5|19.1
+= Phụ Kiện Thời Trang
+- Bộ phụ kiện|16.5|19.1
+- Phụ kiện thêm
+Trâm & Ghim cài áo|16.5|19.1
+Mặt dây chuyền và Charm; Măng sét nam|15.5|18
+Khăn tay; Khẩu trang thời trang; Khác; Miếng vá áo; Hình xăm dán|16.5|19.1
+- Lắc chân|16.5|19.1
+- Thắt lưng|16.5|19.1
+- Vòng tay & Lắc tay|15.5|18
+- Bông tai|15.5|18
+- Kính mắt
+Hộp kính và phụ kiện; Gọng kính; Khác; Kính mát|15.5|18.1
+- Fine Jewelry
+Anklets; Bracelets & Bangles; Trâm & Ghim cài áo; Mặt dây chuyền và Charm; Earrings; Jewellery Set; Necklaces; Khác; Rings|14.5|17
+- Găng tay|16.5|19.1
+- Phụ kiện tóc
+Kẹp tóc; Đồ buộc tóc & Nơ; Băng đô tóc; Cài tóc, vương miện cài tóc; Khác; Tóc giả & Tóc nối|16.5|19.1
+- Mũ|16.5|19.1
+- Kim loại quý
+Kim cương; Ngọc bích, Cẩm thạch; Khác; Platinum & Vàng|14.5|17
+Bạc|15.5|18.1
+- Dây chuyền|16.5|19.1
+- Cà vạt & Nơ cổ|16.5|19.1
+- Khác|16.5|19.1
+- Nhẫn|15.5|18
+- Khăn choàng|16.5|19.1
+= Túi Ví Nam
+- Ba lô|16.5|19.1
+- Cặp xách công sở|15.5|18
+- Ví cầm tay|15.5|18
+- Túi đeo chéo|16.5|19.1
+- Cặp laptop
+Ba lô laptop; Túi & cặp đựng laptop; Túi chống sốc laptop; Khác|16.5|19.1
+- Khác|15.5|18
+- Túi tote|15.5|18
+- Túi đeo hông & Túi đeo ngực|15.5|18.1
+- Bóp/ Ví
+Ví gập đôi & gập ba; Ví đựng thẻ; Ví đựng tiền xu; Ví dài; Khác|15.5|18
+Ví đựng điện thoại & chìa khóa|16.5|19.1
+= Thời Trang Nam
+- Đồ hóa trang|16.5|19.1
+- Hoodie & Áo nỉ
+Áo hoodie; Khác; Áo nỉ|16.5|19.1
+- Đồ lót
+Khác; Sexy Innerwear; Đồ lót giữ nhiệt; Áo lót; Quần lót|16.5|19.1
+- Áo khoác
+Áo Khoác; Khác; Áo khoác vest; Áo khoác mùa đông & Áo choàng|16.5|19.1
+- Quần jean|14.5|17.1
+- Trang phục ngành nghề|16.5|19.1
+- Khác|16.5|19.1
+- Quần dài
+Quần túi hộp; Quần jogger; Khác; Quần dài|15.5|18.1
+- Sets|15.5|18.1
+- Quần đùi|16.5|19.1
+- Đồ ngủ|15.5|18.1
+- Vớ/ Tất|16.5|19.1
+- Com lê
+Khác; Áo Khoác & Blazer; Quần âu; Bộ Com lê; Áo vest & Gi lê|15.5|18.1
+- Áo len|16.5|19.1
+- Áo
+Khác; Áo polo; Áo sơ mi; Áo Thể Thao; Áo ba lỗ|16.5|19.1
+- Trang phục truyền thống
+Bottoms; Khác; Bộ Đồ Thể Thao; Áo|15.5|18.1
+= Giày Dép Nam
+- Bốt
+Bốt thời trang; Khác; Bốt đi mưa; Bốt bảo hộ|15.5|18
+- Giày tây lười|15.5|18
+- Khác|15.5|18
+- Giày Oxfords & Giày buộc dây|15.5|18
+- Xăng-đan & Dép
+Dép xỏ ngón; Dép mát-xa; Dép đi trong nhà; Khác; Xăng-đan|15.5|18
+- Phụ kiện giày dép
+Khác; Dụng cụ chăm sóc & Vệ sinh giày; Khử mùi giày dép; Cây đón gót & Giữ form giày; Lót giày; Dây giày|15.5|18
+- Giày sục|15.5|18
+- Giày thể thao/ Sneakers|15.5|18
+= Muslim Fashion
+- Kid Muslim Wear
+Girl's Muslim Attire|15.5|18
+- Men Muslim Wear
+Sarong|15.5|18
+- Prayer Attire & Equipment
+Peci, Songkok & Kopiah|15.5|18
+- Sets|15.5|18
+- Women Muslim Wear
+Accessories; Bottoms; Dresses; Veils|15.5|18
+= Thể Thao & Dã Ngoại
+- Khác|15.5|18.1
+- Phụ Kiện Thể Thao & Dã Ngoại
+Túi Chống Thấm; Đồ Bảo Hộ Gym; Dụng Cụ Bảo Vệ Miệng & Băng Keo Thể Thao; Khác; Áo Mưa; Túi Đựng Giày; Mũ Thể Thao & Dã Ngoại; Băng Đô Thể Thao; Vòng Tay Thể Thao; Đồng Hồ Bấm Giây & Máy Đếm Bước Chân; Phụ Kiện Tập Luyện; Ô/Dù|16.5|19.1
+- Thời Trang Thể Thao & Dã Ngoại
+Bottoms; Áo Khoác; Áo CLB; Thời Trang Thể Thao Trẻ Em; Khác; Bộ Đồ Thể Thao; Áo Lót Thể Thao; Đồ Bơi; Áo Thể Thao|16.5|19.1
+- Dụng Cụ Thể Thao & Dã Ngoại
+Bắn Cung; Cầu Lông; Bóng Chày & Bóng Ném; Bóng Rổ; Bida; Thể Thao Ván Trượt; Chèo Thuyền; Đấm bốc & Võ Tổng Hợp; Cắm Trại & Dã ngoại; Đạp Xe; Ném Phi Tiêu; Câu Cá; Thiết Bị Thể Thao; Golf; Trượt Tuyết & Thể Thao Mùa Đông; Khác; Leo Núi; Bóng Bầu Dục; Bắn Súng & Game Sinh Tồn; Bóng Đá, Futsal & Cầu Mây; Bóng Quần; Lướt Ván; Bơi Lội & Lặn; Bóng Bàn; Tennis; Bóng Chuyền; Yoga & Pilates|13.5|16
+- Giày Thể Thao
+Giày Cầu Lông; Giày Bóng Rổ; Giày Futsal; Giày Dã Ngoại; Giày Thể Thao Trẻ Em; Khác; Giày Chạy Bộ; Giày Bóng Đá; Giày Tennis; Giày Tập Luyện; Giày Bóng Chuyền|14.5|17
+= Du lịch & Hành lý
+- Vali|13.5|16
+- Khác|15.5|18.1
+- Phụ kiện du lịch
+Khóa vali; Áo trùm vali; Cân hành lý; Dây đai vali; Thẻ hành lý; Khác; Ví hộ chiếu; Túi du lịch nhiều ngăn; Gối & Bịt mắt; Bộ chiết mỹ phẩm|15.5|18.1
+- Túi du lịch
+Túi dây rút; Túi trống; Túi gấp gọn; Khác|15.5|18.1
+= Đồng Hồ
+- Đồng hồ nam|15.5|18
+- Khác|15.5|18
+- Bộ đồng hồ & Đồng hồ cặp|15.5|18
+- Phụ kiện đồng hồ
+Pin đồng hồ; Hộp đựng đồng hồ; Khóa đồng hồ; Khác; Dụng cụ sửa chữa; Dây đồng hồ|15.5|18
+- Đồng hồ nữ|15.5|18
+= Túi Ví Nữ
+- Ba lô|15.5|18.1
+- Phụ kiện túi
+Dụng cụ treo/đựng túi; Túi đa ngăn tiện ích; Dây đeo túi; Charm và phụ kiện gắn túi; Dụng cụ vệ sinh và chăm sóc túi; Khác|16.5|19.1
+- Ví dự tiệc & Ví cầm tay|16.5|19.1
+- Túi đeo chéo|15.5|18
+- Cặp laptop
+Ba lô laptop; Túi & cặp đựng laptop; Túi chống sốc laptop; Khác|15.5|18.1
+- Khác|16.5|19.1
+- Túi quai xách|15.5|18
+- Túi tote|16.5|19.1
+- Túi đeo hông & Túi đeo ngực|16.5|19.1
+- Bóp/ Ví
+Ví gập đôi & gập ba; Ví đựng thẻ; Ví đựng tiền xu; Ví dài; Khác; Ví đựng điện thoại & chìa khóa|15.5|18.1
+= Thời Trang Nữ
+- Đồ hóa trang|16.5|19.1
+- Đầm|16.5|19.1
+- Vải
+Vải Batik; Vải canvas; Vải cotton|14.5|17
+Vải denim|15.5|18
+Vải da; Khác; Vải nhung, lụa, satin; Vải nylon; Vải len|14.5|17
+- Hoodie & Áo nỉ
+Áo hoodie; Khác; Áo nỉ|16.5|19.1
+- Áo khoác
+Áo blazer; Áo choàng; Áo Khoác; Khác; Áo khoác vest; Áo khoác mùa đông & Áo choàng|15.5|18
+- Quần jean|16.5|19.1
+- Đồ liền thân
+Đồ bay (Jumpsuits); Khác; Quần yếm; Đồ bay ngắn (playsuits)|16.5|19.1
+- Đồ lót
+Phụ kiện đồ lót; Áo ngực; Khác; Quần lót; Đồ lót bảo hộ; Bộ Đồ Thể Thao; Đồ lót gợi cảm; Đồ định hình; Đồ lót giữ nhiệt|16.5|19.1
+- Đồ Bầu
+Đồ mặc cho con bú; Quần bầu, Váy bầu; Đầm bầu; Bộ đồ bầu; Áo bầu; Áo ngực cho con bú; Khác|16.5|19.1
+- Khác|16.5|19.1
+- Quần
+Quần legging; Khác; Quần dài|16.5|19.1
+- Sets
+Bộ đồ đôi; Bộ đồ gia đình; Đồ lẻ; Khác|16.5|19.1
+- Quần đùi
+Khác; Quần đùi; Quần váy|16.5|19.1
+- Váy|16.5|19.1
+- Đồ ngủ
+Áo choàng ngủ, Áo khoác kimono; Váy ngủ; Khác; Pyjama|16.5|19.1
+- Vớ/ Tất
+Khác; Quần tất; Tất|16.5|19.1
+- Áo len|16.5|19.1
+- Áo
+Áo liền thân; Khác; Áo polo; Áo sơ mi; Áo Thể Thao; Áo hai dây và ba lỗ; Áo ống|16.5|19.1
+- Trang phục truyền thống
+Bottoms; Dresses; Khác; Bộ Đồ Thể Thao; Áo|16.5|19.1
+- Váy cưới|16.5|19.1
+= Giày Dép Nữ
+- Bốt
+Bốt thời trang; Khác; Bốt đi mưa|15.5|18
+- Xăng-đan và dép
+Xăng-đan đế bằng; Dép xỏ ngón; Dép mát-xa; Dép đi trong nhà; Khác|16.5|19.1
+- Giày đế bằng
+Giày bale|16.5|19.1
+Giày lười; Khác; Giày Oxford & Giày buộc dây|15.5|18
+Giày sục & Giày búp bê|16.5|19.1
+- Giày cao gót|15.5|18
+- Khác|15.5|18
+- Phụ kiện giày dép
+Miếng lót giày; Khác; Dụng cụ chăm sóc & Vệ sinh giày; Khử mùi giày dép; Cây đón gót & Giữ form giày; Dây giày|15.5|18
+- Giày thể thao/ Sneakers|15.5|18
+- Giày đế xuồng|15.5|18
+= Sức Khỏe
+- Thực phẩm chức năng
+Hỗ trợ làm đẹp; Hỗ trợ tăng cơ; Khác; Hỗ trợ kiểm soát cân nặng; Hỗ trợ sức khỏe|17|19
+= Sắc Đẹp
+- Bộ sản phẩm làm đẹp|17|19.1
+- Dụng cụ làm đẹp
+Dụng cụ làm thon gọn cơ thể; Dụng cụ chăm sóc da mặt; Dụng cụ chăm sóc tóc; Khác|17|19.1
+= Sức Khỏe
+- Khác|17|20.8
+= Sắc Đẹp
+- Đồ dùng phòng tắm & Chăm sóc cơ thể bé
+Kem & sữa dưỡng thể; Khử mùi cơ thể; Mặt nạ ủ cơ thể; Dầu dưỡng da; Tẩy tế bào chết cơ thể; Xà phòng & sữa tắm; Chăm sóc ngực; Kem tẩy lông & wax lông; Dầu massage; Khác; Chống nắng cho bé|17|20.8
+- Dụng cụ làm đẹp
+Dụng cụ trang điểm|17|20.8
+- Chăm sóc tóc
+Dầu xả; Thuốc nhuộm tóc; Sản phẩm tạo kiểu tóc; Sản phẩm dưỡng tóc; Khác; Dầu gội|17|20.8
+- Chăm sóc tay, chân & móng
+Chăm sóc chân; Chăm sóc tay; Chăm sóc móng; Khác|17|20.8
+- Trang điểm
+Trang điểm mắt; Trang điểm mặt; Trang điểm môi; Tẩy trang; Khác|17|20.8
+- Chăm sóc nam giới
+Sữa tắm & chăm sóc cơ thể; Chăm sóc lông; Khác; Sản phẩm cạo râu & hớt tóc; Chăm sóc da|17|20.8
+- Khác|17|20.8
+- Nước hoa|17|20.8
+- Chăm sóc da mặt
+Sản phẩm trị mụn; Kem dưỡng sau chống nắng; Giấy thấm dầu; Sản phẩm dưỡng mắt; Mặt nạ; Tẩy tế bào chết; Kem chống nắng cho mặt; Sữa rửa mặt; Xịt khoáng; Kem dưỡng ẩm; Dầu dưỡng ẩm; Tinh chất dưỡng; Sản phẩm dưỡng môi; Khác; Nước cân bằng da|17|20.8
+= Sức Khỏe
+- Hỗ trợ tình dục
+Bao cao su; Bôi trơn; Khác; Tăng cường sinh lý|17|20.8
+= Sắc Đẹp
+- Dụng cụ làm đẹp
+Dụng cụ tẩy lông|17|16.5
+= Sức Khỏe
+- Chăm sóc cá nhân
+Tã người lớn; Chăm sóc tai; Chăm sóc mắt; Chăm sóc phụ nữ; Dung dịch sát khuẩn tay; Chống muỗi & xua đuổi côn trùng; Chăm sóc răng miệng; Khác|16.5|20.8
+Dụng cụ massage và trị liệu|16.5|18
+- Vật tư y tế
+Dụng cụ sơ cứu; Kiểm tra và theo dõi sức khỏe; Hỗ trợ chấn thương và khuyết tật; Dụng cụ thí nghiệm; Bao tay và khẩu trang y tế; Chăm sóc mũi cho bé; Khác; Thuốc không kê đơn; Sản phẩm giảm đau dùng ngoài da; Prescription Medicine; Cân sức khỏe và phân tích cơ thể; Ống nghe y tế; Thuốc gia truyền|15.5|19.1
+= Thực phẩm và đồ uống
+- Đồ uống có cồn
+Bia và trái cây lên men; Rượu mạnh; Khác; Rượu sake, soju & umeshu; Rượu vang & Sâm panh|15|18.1
+- Đồ làm bánh
+Đồ trang trí; Hương liệu; Bột nở và muối nở; Bột pha sẵn; Chất tạo màu; Khác|15|18.1
+= Mẹ & Bé
+- An toàn cho bé
+Thanh chắn cửa & Cầu thang; Bộ đệm cũi, Quây cũi & Thanh chắn giường; Bọc góc & Cạnh; Thiết bị giám sát trẻ; Màn chống muỗi; Khác; Khóa & Dây đai an toàn|15|18.1
+= Chăm Sóc Thú Cưng
+- Thức ăn cho thú cưng
+Thức ăn cho cá; Thức ăn cho chim; Thức ăn cho mèo; Snack cho mèo; Thức ăn cho chó; Snack cho chó; Khác; Thức ăn cho bò sát; Thức ăn cho thú nhỏ; Snack cho thú nhỏ|14|17.1
+- Chăm sóc sức khỏe
+Tẩy giun & diệt bọ chét; Dược phẩm; Khác; Vitamin & chất bổ sung dinh dưỡng|14|17.1
+= Thực phẩm và đồ uống
+- Khác|14|15.7
+= Mẹ & Bé
+- Khác|15|17.7
+= Chăm Sóc Thú Cưng
+- Vệ sinh cho thú cưng
+Khay & Bồn vệ sinh cho mèo; Tã cho thú cưng; Khay huấn luyện vệ sinh cho chó; Khác; Túi & Xẻng dọn vệ sinh; Lót chuồng cho thú nhỏ|14|16.7
+- Khác|14|16.7
+- Phụ kiện cho thú cưng
+Phụ kiện thủy sinh; Bát & dụng cụ ăn; Vòng cổ, dây dắt & rọ mõm; Khác; Nội thất cho thú cưng; Đồ chơi; Thiết bị du lịch|14|16.7
+- Quần áo & phụ kiện
+Giày, tất & bảo vệ móng; Kính mắt; Phụ kiện lông; Mũ nón thú cưng; Phụ kiện đeo cổ; Khác; Quần áo thú cưng; Áo mưa chó mèo|14|16.7
+- Làm đẹp cho thú cưng
+Chăm sóc móng; Chăm sóc lông; Chăm sóc răng miệng; Khác|14|16.7
+= Mẹ & Bé
+- Đồ dùng phòng ngủ cho bé
+Ghế rung, Ghế nhún & Xích đu tập đi; Nôi & Cũi & Giường cho bé; Khác; Kệ & Tủ; Xe tập đi|13.5|16.7
+- Đồ chơi
+Đồ chơi cho trẻ sơ sinh & trẻ nhỏ; Đồ chơi lắp ráp; Búp bê & Thú nhồi bông; Đồ chơi giáo dục; Khác; Đồ chơi nhập vai; Đồ chơi Robot; Slime & Đồ chơi nhựa dẻo; Đồ chơi vận động & Ngoài trời; Xe đồ chơi|14.5|18.1
+- Đồ dùng du lịch cho bé
+Ghế ngồi ô tô & xe máy; Xe đẩy|14|15.5
+= Thực phẩm và đồ uống
+- Các loại bánh
+Bánh mì; Bánh kem; Khác; Bánh ngọt/ pastry|14|17.7
+- Đồ uống
+Nước có ga; Thức uống Sô cô la; Cà phê; Siro pha; Đồ tráng miệng; Topping; Nước tăng lực; Nước trái cây lên men; Sữa thực vật; Khác; Bột pha; Trà & trà túi lọc; Trà thảo mộc|14|17.7
+Nước tinh khiết|10|13.7
+- Ngũ cốc & mứt
+Thanh dinh dưỡng; Ngũ cốc; Mật ong và siro; Mứt; Khác|14|17.7
+- Đồ chế biến sẵn
+Đồ ăn chế biến sẵn; Lẩu ăn liền|14|17.7
+Mì ăn liền|10|13.7
+Cơm và cháo ăn liền; Khác|14|17.7
+- Nguyên liệu nấu ăn
+Gói/ bột gia vị; Phụ gia thực phẩm; Bột phủ|13|16.7
+Dầu ăn|10|13.7
+Khác|13|16.7
+Gia vị & Hương liệu|10|13.7
+Sốt & súp ăn liền|13|16.7
+Đường|10|13.7
+Chất tạo ngọt|13|16.7
+- Nhu yếu phẩm
+Thực phẩm đóng hộp; Thực phẩm khô; Mì|10|13.7
+Khác; Mì Ý; Rau củ ngâm|12|15.7
+Gạo|10|13.7
+- Thực phẩm tươi sống & đông lạnh
+Thực phẩm đông lạnh chế biến sẵn; Trái cây|13|16.7
+Thịt|10|13.7
+Nấm; Khác; Thịt và hải sản chế biến sẵn; Hải sản|13|16.7
+Rau củ|10|13.7
+Thịt chay|13|16.7
+- Đồ ăn vặt
+Bánh quy; Khoai tây lát; Sô cô la; Thức ăn khô; Các loại đậu sấy khô; Khác; Bỏng ngô; Pudding, thạch & kẹo dẻo; Các loại rong biển ăn liền; Các loại hạt sấy khô; Kẹo|13|16.7
+- Sữa - trứng
+Đậu phụ|12|16.7
+Bơ động vật & thực vật; Phô mai & bột phô mai; Bột kem béo|14|18.7
+Trứng|10|14.7
+Kem|14|18.7
+Khác; Sữa chua|12|16.7
+= Mẹ & Bé
+- Đồ dùng ăn dặm cho bé
+Yếm; Bình sữa; Máy xay cắt thực phẩm; Khác; Ti giả; Đồ dùng cho bé|16|19.1
+- Phụ kiện cho mẹ
+Gối bầu; Khác; Đai hỗ trợ bụng|15|18.1
+- Chăm sóc sức khỏe mẹ
+Sữa bầu; Vitamin & Thực phẩm bổ sung cho mẹ; Kem dưỡng ẩm cho mẹ; Khác|15|18.1
+- Đồ dùng phòng ngủ cho bé
+Nệm và chăn ga|14|17.1
+- Đồ dùng ăn dặm cho bé
+Đồ dùng cho con bú; Ghế ăn dặm|15.5|18
+= Thực phẩm và đồ uống
+- Sữa - trứng
+Sữa|12.5|16
+= Mẹ & Bé
+- Tã & bô em bé
+Bệ thu nhỏ bồn cầu & Bô vệ sinh|13|15.5
+- Bộ & Gói quà tặng|14.5|18.1
+- Đồ dùng du lịch cho bé
+Địu em bé; Phụ kiện ghế ngồi ô tô & xe máy; Dây & Đai dắt trẻ; Túi đựng bỉm sữa; Khác; Phụ kiện xe đẩy|14.5|17.7
+- Chăm sóc sức khỏe bé
+Chăm sóc răng miệng cho bé|14.5|18
+Chăm sóc da cho bé|10.5|14
+Vitamin & Thực phẩm bổ sung; Chăm sóc mũi cho bé; Khác; Chống nắng cho bé|14.5|18
+- Đồ dùng phòng tắm & Chăm sóc cơ thể bé
+Nước hoa cho bé; Bộ chăm sóc trẻ sơ sinh; Giặt xả quần áo trẻ em; Áo choàng tắm, Khăn tắm & Khăn mặt; Dụng cụ tắm & Phụ kiện; Chậu tắm & Ghế tắm|13.5|17.7
+Sản phẩm tắm & gội cho bé|10.5|14.7
+Khác; Nón tắm; Khăn lau|13.5|17.7
+- Tã & bô em bé
+Bộ lót thay tã; Tã vải & Phụ kiện; Tã dùng một lần; Khác|12|15.5
+- Sữa công thức & Thực phẩm cho bé
+Cháo, Thực phẩm xay nhuyễn & Ngũ cốc; Đồ ăn nhẹ cho bé|11|14.5
+Sữa công thức|11|12.5
+Khác|11|14.5
+Sữa pha sẵn|11.5|14.5
+= Thực phẩm và đồ uống
+- Đồ làm bánh
+Bột mì|13|16
+- Bộ quà tặng|13|15.5
+= Ô tô
+- Phụ kiện ngoại thất ô tô
+Ăng-ten thu phát sóng; Bạt phủ; Nẹp viền; Rãnh thoát nước mưa; Còi & Phụ kiện; Phụ kiện biển số; Gương và phụ kiện; Tấm chắn bùn; Khác; Nẹp cửa chống trầy; Hình dán, logo, huy hiệu|16|18.7
+- Phụ kiện nội thất ô tô
+Hệ thống loa; Camera hành trình & Camera lùi; Nệm giường ô tô; Thảm & Đệm lót; HUD, Đồng hồ tốc độ, Đồng hồ số; Khóa và thiết bị chống trộm; Thiết bị định vị và Hệ thống hình ảnh/âm thanh; Dụng cụ chứa; Khác; Chân ga và Cần số; Nước hoa, Nước hoa khử mùi, Thiết bị lọc không khí; Giá đỡ điện thoại; Gối tựa đầu & lưng; Ghế & bọc ghế; Vô lăng & Bọc vô lăng; Tấm che nắng và Thảm Taplo; Cốc sạc USB, Thiết bị thu phát FM & Bluetooth|16|18.7
+- Phụ tùng ô tô
+Vòng bi & con dấu; Dây chuyền động; Hệ thống khung xe và giảm sóc; Hệ thống phanh; Hệ thống dẫn động; Thiết bị điện tử; Bộ phận động cơ; Hệ thống khí xả; Hệ thống xử lý nhiên liệu; Khác; Bộ tản nhiệt, Làm mát động cơ & Kiểm soát nhiệt; Hệ thống giảm xóc; Lốp xe & Phụ kiện; Bánh xe, Vành & Phụ kiện; Cần gạt nước & vòng đệm kính chắn gió|16|18.7
+- Chăm sóc ô tô
+Rửa kính & Chất chống bám nước; Chăm sóc nội thất; Khác; Đánh bóng, sơn phủ & chất làm kín; Chăm sóc lốp & vành; Dung dịch tẩy rửa|16|18.7
+- Móc chìa khóa và Bọc chìa ô tô|16|18.7
+- Dầu nhớt và phụ gia ô tô
+Chất chống đông & chất làm mát; Dầu máy; Phụ gia; Mỡ & Chất bôi trơn; Dầu; Khác|15|17.7
+- Dịch vụ cho xe|15|17.7
+- Dụng cụ sửa chữa ô tô
+Khác; Dụng cụ Kiểm tra, chẩn đoán & sửa chữa; Máy đo áp suất lốp|16|18.7
+- Ô tô|3.5|3.5
+- Khác|15|17.7
+= Sách & Tạp Chí
+- Sách
+Văn Học Hành Động, Tội Phạm & Kinh Dị; Sách Người Lớn; Sách Nông - Lâm - Ngư Nghiệp; Sách Nghệ thuật, Thiết kế & Nhiếp ảnh; Sách Nói; Sách Vải; Tiểu Sử - Hồi Ký; Sách Kinh Tế - Kinh Doanh; Sách Hướng Nghiệp & Phát Triển Bản Thân; Sách Thiếu Nhi; Văn Học Kinh Điển; Truyện Tranh; Sách Công Nghệ Thông Tin; Sách Giáo Dục; Văn Học Giả Tưởng; Sách Sức Khỏe, Rèn Luyện & Ăn Kiêng; Sách Lịch Sử - Văn Hóa; Sách Sở Thích Cá Nhân; Sách Chiêm Tinh; Sách Học Ngoại Ngữ & Từ Điển; Văn Học LGBTQ+; Light Novels; Sách Y Học; Sách Âm Nhạc; Khác; Sách Gia Đình; Sách Chính Trị - Pháp Lý & Khoa Học; Sách Tâm Lý Học; Sách Dạy Nấu Ăn; Sách Tôn giáo & Triết học; Văn Học Lãng Mạn; Khoa Học - Toán Học; Sách Hình Dán & Tô Màu; Sách Du Lịch - Du Ký|15|17
+- E-Books|14|16
+- Tạp Chí & Báo Giấy
+Tạp Chí Kinh Tế; Tạp Chí Đời Sống; Khác; Tạp Chí Tuổi Teen|15|17
+- Khác|14|16
+= Sở thích & Sưu tầm
+- Băng - Đĩa|16|17.7
+- Đồ Sưu Tầm
+Mô hình nhân vật; Bộ sưu tập hoạt hình truyện tranh; Tiền xu & tiền giấy sưu tầm; Bộ sưu tập nhân vật nổi tiếng; Mô hình mecha/gundam; Khác; Bộ sưu tập thể thao; Tượng tĩnh; Đá & khoáng vật; Mô hình xe|16|17.7
+- Nhạc Cụ & Phụ Kiện
+Đàn Piano & Organ; Phụ Kiện Âm Nhạc; Khác; Nhạc Cụ Gõ; Nhạc Cụ Dây; Sáo, kèn|16|16.5
+- Dụng Cụ May Vá|16|18.7
+- Khác|15|17.7
+- Album Ảnh|15|17.7
+- Quà Lưu Niệm
+Ống tiết kiệm; Nam Châm; Quạt Cầm Tay; Móc khóa; Khác|16|18.7
+- Đồ chơi - Giải trí
+Đồ chơi trứng; Đồ chơi thẻ bài & boardgame; Kendama; Đồ chơi ảo thuật; Khác; Đồ chơi chọc ghẹo|17|18.7
+Đồ chơi điều khiển từ xa; Đồ chơi rubik; Đồ chơi con xoay; Yo yo|16.5|18.2
+- Đĩa Than|16|18.7
+= Nhà cửa & Đời sống
+- Đồ dùng phòng tắm
+Bông tắm; Kệ để đồ phòng tắm|16|19.1
+Bồn tắm|14|16.5
+Khác; Tay cầm an toàn; Nón tắm; Rèm cửa nhà tắm|16|19.1
+Ghế nhà tắm, ghế chống trượt|14|16.5
+Vòi sen & vòi xịt vệ sinh; Kệ đựng xà phòng|16|19.1
+Bồn cầu, ghế và nắp bồn cầu|14|16.5
+Kệ đựng bàn chải, kệ nhả kem đánh răng; Khăn mặt, khăn tắm, áo choàng tắm|16|19.1
+- Chăn ga gối nệm
+Ga trải giường, vỏ gối; Chăn, mền; Gối ôm; Chiếu điều hòa; Tấm bảo vệ nệm, topper|16|18.7
+Nệm|16|14.5
+Mùng/ Màn chống muỗi; Khác; Gối|16|18.7
+- Trang trí nhà cửa
+Nến & đồ đựng nến; Thảm trải sàn; Đồng hồ; Rèm cửa, màn che; Thảm chùi chân; Hoa trang trí; Vỏ bọc nội thất; Gương; Khác; Khung ảnh & vật trang trí tường; Khăn trải bàn; Bình trang trí; Decal, tranh dán tường|16|19.1
+- Bộ đồ bàn ăn
+Tô; Cốc, ly, tách uống nước; Bộ dao kéo; Lồng bàn; Bình nước; Khác; Khay, tấm lót bàn ăn; Dĩa; Ống hút; Bộ ấm trà; Bình nước & phụ kiện|16|19.1
+- Đồ thờ cúng, đồ phong thủy|16|19.1
+- Nội thất
+Giường, khung giường; Ghế, ghế dài, ghế đẩu; Tủ bếp; Đệm ngồi; Bàn; Miếng chặn cửa; Khác; Kệ & Giá; Ghế sofa; Tủ quần áo|14.2|15
+- Làm vườn
+Phân bón; Trang trí vườn; Đất trồng; Dụng cụ làm vườn; Hệ thống tưới nước; Máy cắt cỏ, dụng cụ cắt cỏ; Khác; Cây cảnh; Chậu cây; Hạt giống & chất hỗ trợ trồng cây|14|16.5
+- Túi làm ấm|16|19.1
+- Dụng cụ chăm sóc nhà cửa
+Chậu, xô & gáo nước|14|18.7
+Chổi|10|14.7
+Chất tẩy rửa|10.5|14.7
+Bàn chải vệ sinh; Khăn vệ sinh; Dây phơi & giá phơi quần áo; Chổi phủi bụi|14|18.7
+Phụ kiện giặt là|10.5|14.7
+Cây lau nhà|10|14.7
+Khác; Thuốc và dụng cụ diệt côn trùng|14|18.7
+Túi nilon & túi rác; Miếng bọt biển, miếng chà vệ sinh|10|14.7
+Khăn giấy, giấy ướt|10.5|12.5
+Giấy vệ sinh|10.5|14
+Thùng rác|14|18.7
+- Chất khử mùi, làm thơm nhà
+Chất khử mùi, làm thơm; Máy khuếch tán, tạo ẩm & xông tinh dầu; Tinh dầu thơm; Khác|16|19.1
+- Sắp xếp nhà cửa
+Kệ sách để bàn; Mắc áo; Móc treo; Hộp đựng trang sức|16|19.1
+Túi giặt, giỏ đựng quần áo|14.5|17.6
+Khác; Kệ giày, hộp giày|16|19.1
+Hộp đựng, giỏ đựng đồ|15|18.1
+Hộp khăn giấy; Sắp xếp tủ quần áo|16|19.1
+- Dụng cụ nhà bếp
+Giấy bạc|16|19.1
+Tạp dề & găng tay nấu nướng|15|18.1
+Dụng cụ nướng & trang trí bánh; Dụng cụ mở hộp; Thớt; Màng bọc thực phẩm; Hộp đựng thực phẩm; Bàn nạo, dụng cụ bào, cắt|16|19.1
+Lò nướng & phụ kiện|14|17.1
+Kệ để đồ nhà bếp; Cân nhà bếp; Dao & kéo; Bật lửa, diêm và mồi lửa; Measuring Glasses & Spoons; Khác; Chảo; Nồi|16|19.1
+Dụng cụ hút chân không|14|17.1
+Cây vét bột & đồ gắp thức ăn; Dụng cụ lọc; Dụng cụ pha trà, cà phê; Phới đánh trứng|16|19.1
+- Đèn|14|17
+- Khác|16|18.7
+- Trang trí tiệc tùng
+Phông nền, biểu ngữ; Bong bóng; Thiệp; Chén, đĩa dùng một lần; Khác; Mũ, mặt nạ dự tiệc; Băng đeo chéo; Kẹp gỗ|15|17.7
+- Bảo hộ gia đình
+Khóa, ổ khóa|16|16.5
+Thiết bị chữa cháy; Khác|16|17
+Két sắt|13|14.5
+- Dụng cụ & Thiết bị tiện ích
+Máy bơm khí & phụ kiện|16|18.7
+Vật liệu xây dựng; Cửa & cửa sổ|14|17
+Keo & chất kết chính công nghiệp|16|18.7
+Thang|14|17
+Khác|16|18.7
+Găng tay, kính bảo hộ & mặt nạ|15|17.7
+Mái & sàn|14|17
+Mái hiên, bạt phủ|16|18.7
+Chậu rửa & vòi nước|14|17
+Dụng cụ|16|18.7
+Xe đẩy; Sơn & chất chống thấm tường|14|17
+Máy bơm nước & phụ kiện|16|18.7
+= Mô tô, xe máy
+- Phụ kiện xe máy
+Thùng chứa đồ; Lót sàn; Bạt phủ; Khóa và thiết bị chống trộm; Gương và phụ kiện; Tấm chắn bùn; Khác; Giá đỡ điện thoại; Ghế & bọc ghế; Đồng hồ đo; Hình dán, logo, huy hiệu|16|18.7
+- Mũ bảo hiểm & Phụ kiện|16|18.7
+- Phụ tùng xe máy
+Pin & Phụ kiện; Hệ thống khung xe; Hệ thống phanh; Dây cáp & Ống; Hệ thống dẫn động; Hệ thống khí xả; Hệ thống xử lý nhiên liệu; Còi & Phụ kiện; Bộ phận đánh lửa & động cơ; Đèn; Khác; Hệ thống giảm xóc; Lốp xe & Phụ kiện; Bánh xe, Vành & Phụ kiện|16|18.7
+- Mô tô, xe máy|1.5|1.5
+- Khác|15|17.7
+= Văn Phòng Phẩm
+- Họa cụ
+Sơn Acrylic; Vải & Giá Vẽ; Bút Chì Màu; Bút Màu & Phấn Màu; Sơn Dầu; Khác; Cọ Vẽ; Bảng Màu; Sổ vẽ phác thảo; Màu Nước|13|18.7
+- Quà Tặng - Giấy Gói
+Xốp Chống Sốc; Hộp Carton; Túi Quà Tặng; Hộp Quà Tặng; Giấy Gói Quà; Khác; Ruy Băng|11|15.5
+- Thư Tín
+Phong Bì & Bao Lì Xì|13|18.7
+Khác|16|18.7
+Bưu Thiếp; Tem Các Loại|13|18.7
+- Sổ & Giấy Các Loại
+Giấy Mỹ Thuật; Bọc Sách; Đánh Dấu Trang; Nhãn Dán Các Loại; Ruột Sổ; Giấy Ghi Chú; Tập, Vở Các Loại|13|18.7
+Khác|16|18.7
+Giấy In; Giấy Nhiệt|13|18.7
+- Khác|16|18.7
+- Thiết Bị Trường Học
+Máy tính cầm tay; Lịch; Kẹp & Ghim Bấm; Dụng Cụ Lưu Trữ Giấy Tờ; Hồ Dán; Máy Đục Lỗ|13|18.7
+Mực Đóng Dấu; Máy In Nhãn|12|17.7
+Dây Đeo Thẻ & Thẻ Tên; Khác; Dao Rọc Giấy & Máy Cắt Giấy; Hộp Bút; Thước Các Loại & Giấy Nến; Kéo; Gọt bút chì; Đồ Bấm Kim và Kim Bấm; Dây & Băng Keo Dán; Bảng Viết & Giá Treo Bảng|13|18.7
+- Bút Các Loại
+Dụng Cụ Tẩy Xóa; Bút Dạ Quang; Bút Lông Màu; Khác; Bút Chì; Bút & Mực|13|18.7
+!regular
+= Phụ tùng & Phụ kiện xe cơ giới
+- Chăm sóc xe cơ giới
+Khác; Dầu gội xe; Tấm lót / Miếng đệm; Chất xử lý bề mặt; Máy đánh bóng; Chăm sóc lốp & mâm khác; Sáp xe; Máy hút bụi; Chất làm sáng bóng; Chất tẩy dầu mỡ; Nước hoa xe; Khăn lau|16
+- Dịch vụ & lắp đặt xe|15
+- Dụng cụ sửa chữa xe
+Kích nâng; Thiết bị đo lường; Cờ lê; Khác; Tời kéo; Dụng cụ dùng pin; Máy nén khí; Thiết bị chẩn đoán quét lỗi; Máy tháo vỏ lốp|16
+- Khác|16
+- Lốp và mâm xe
+Bánh xe máy; Mâm xe ô tô; Bánh xe tải; Khác; Ruột xe; Lốp xe máy; Lốp xe nông nghiệp; Lốp ô tô; Lốp xe máy; Lốp xe tải; Lốp xe địa hình; Lốp xe công nghiệp|16
+- Ô tô|3.5
+- Phụ kiện ngoại thất ô tô
+Ốp hốc bánh; Ốp / Bọc; Móc kéo / Giá kéo; Phụ kiện cửa sau; Tấm chắn bùn; Giá đỡ / Kệ chở hàng; Miếng độn bánh xe; Tấm hứng gió; Chụp bánh xe; Độ xe; Camera lùi & cảm biến đỗ xe; Khác; Bệ để chân|16
+- Phụ kiện nội thất ô tô
+Móc chìa khóa và bao da chìa; Âm thanh ô tô; Móc khóa & bao da; Sạc điện thoại & giá đỡ; Bọc ghế; Rèm che nắng; Cốc để đồ & hộc tổ chức; Bọc vô lăng; Sạc điện thoại và giá gắn; Cốc để đồ & hộc tổ chức; Thiết bị phát bluetooth; Khác; Thảm lót sàn; Camera hành trình; Thiết bị định vị GPS|16
+- Phụ kiện xe máy
+Quần áo và giày bảo hộ; Túi yên phụ; Ốp / Bọc; Kính che mũ bảo hiểm; Ba lô; Camera hành trình gắn mũ bảo hiểm; Ốc chống đổ; Hộp / Ốp lưng; Giá điện thoại; Decal & Biểu tượng; Mặt đồng hồ; Mũ bảo hiểm; Mặt đồng hồ; Ốc chống trượt động cơ; Gù tay lái; Decal & biểu tượng; Khác; Thiết bị liên lạc; Kính chắn gió|16
+- Phụ tùng ô tô
+Thân xe; Hệ thống chiếu sáng; Hộp số; Phanh; Hệ thống phun nhiên liệu; Kính; Động cơ; Hệ thống treo và lái; Bộ phận bên ngoài; Bộ phận bên trong; Hệ thống đánh lửa; Hệ thống điện|16
+Khác|15
+Phụ gia & dầu bôi trơn; Điều hòa không khí; Lọc; Khí CNG; Ống xả|16
+- Phụ tùng xe máy
+Động cơ; Lọc; Ống xả và giảm thanh; Hộp số; Gương chiếu hậu; Khung gầm; Hệ thống chiếu sáng; Hệ thống đánh lửa|16
+Phụ gia & dầu nhờn; Khác|15
+Ắc quy|16
+- Thiết bị an toàn xe cơ giới
+Chuông báo động & phụ kiện; Chìa khóa điều khiển từ xa; Khóa cửa điện; Chuông báo động & phụ kiện; Khóa; Bu lông bánh xe; Khác|16
+- Xe hạng nặng và tàu thuyền
+Phụ tùng tàu thuyền; Phụ kiện xe hạng nặng; Phụ kiện tàu thuyền; Phụ tùng xe hạng nặng|16
+- Xe máy|1.5
+!mall
+# Dòng 1316–1656 (341 dòng, tất cả 18.70%, nhiều dòng trùng lặp) — chỉ giữ các cặp ngành duy nhất.
+= Phụ tùng và Phụ kiện cho Phương tiện
+- Phụ kiện xe máy
+Ba lô; Hộp đựng; Quần áo và ủng; Bọc/Bạt phủ; Bảo vệ tay lái; Kính chắn mũ bảo hiểm; Mũ bảo hiểm; Bộ đàm / Thiết bị liên lạc; Khác; Bảng điều khiển và đồng hồ tốc độ; Túi hông xe; Tem và logo; Kính chắn gió; Thanh chống sườn; Bảo vệ động cơ|18.7
+- Phụ kiện ngoại thất ô tô
+Bọc/Bạt phủ; Ốp vè bánh xe; Chắn bùn; Khác; Camera và cảm biến đỗ xe; Giá nóc và giá chở hàng; Tinh chỉnh xe; Ốp bánh xe; Đệm bánh xe; Móc kéo; Phụ kiện cửa sau; Bậc lên xuống; Tấm chắn gió|18.7
+- Phụ kiện nội thất ô tô
+Thiết bị truyền Bluetooth; Hệ thống âm thanh ô tô; Camera ô tô; Thảm lót sàn ô tô; Giá để cốc và khay; Thiết bị định vị GPS; Móc khóa và bảo vệ chìa khóa; Khác; Sạc và giá đỡ điện thoại; Bọc ghế; Bọc vô lăng; Tấm che nắng|18.7
+- Phụ tùng ô tô
+Phụ gia và dầu bôi trơn; Điều hòa không khí; Thân xe; Hệ thống phanh; Hệ thống điện; Động cơ; Ống xả; Linh kiện ngoại thất; Kính lọc; Hệ thống phun nhiên liệu; Linh kiện nội bộ; Hệ thống chiếu sáng; Khác; Hệ thống treo và lái; Hộp số; Hệ thống đánh lửa; Kính; CNG|18.7
+- Phụ tùng xe máy
+Phụ gia và dầu bôi trơn; Pin đồng hồ; Khung gầm; Động cơ; Ống xả và pô; Kính lọc; Hệ thống đánh lửa; Hệ thống chiếu sáng; Khác; Gương chiếu hậu; Hộp số|18.7
+- Lốp và mâm/bánh xe
+Lốp ô tô; Mâm/bánh xe ô tô; Lốp xe đạp; Lốp công nghiệp; Ruột lốp; Lốp xe máy; Bánh xe máy; Khác; Lốp xe địa hình ATV; Lốp xe tải; Mâm/bánh xe tải; Lốp xe nông nghiệp|18.7
+- Chăm sóc xe
+Dung dịch làm sáng; Dung dịch tẩy dầu mỡ; Nước hoa xe; Khác; Miếng đánh bóng; Máy đánh bóng; Dầu gội; Khăn lau; Dung dịch xử lý/bảo dưỡng; Máy hút bụi; Sáp đánh bóng|18.7
+- Thiết bị an toàn cho xe
+Thiết bị chống trộm và phụ kiện; Khóa; Khác; Khóa điện; Chìa khóa điều khiển từ xa; Đai ốc bánh xe|18.7
+- Dụng cụ cho phương tiện
+Máy nén khí; Dụng cụ cho ắc quy; Thiết bị nâng; Dụng cụ đo lường; Khác; Thiết bị chẩn đoán; Máy ra vào lốp; Tời kéo; Cờ lê|18.7
+- Xe tải nặng và Tàu thuyền
+Phụ tùng tàu thuyền; Phụ tùng xe tải nặng; Phụ kiện xe tải nặng; Phụ kiện tàu thuyền|18.7
+- Khác|18.7

@@ -16,7 +16,9 @@
       <h2>1. Sàn & loại shop</h2>
       <div class="seg" id="platform"><button data-v="shopee">🛍️ Shopee</button><button data-v="tiktok">🎵 TikTok Shop</button></div>
       <div class="seg" id="shopType"><button data-v="0">Shop thường</button><button data-v="1">Shop Mall</button></div>
-      <label>Danh mục ngành hàng<select id="category"></select></label>
+      <label>Danh mục ngành hàng <span id="catCount" class="muted"></span>
+        <input id="catSearch" type="search" placeholder="🔍 Tìm ngành: áo sơ mi, son, tai nghe..." autocomplete="off" />
+        <select id="category" size="1"></select></label>
       <label>Phí cố định / hoa hồng ngành (%) <span id="catBadge" class="badge"></span>
         <div class="suffix"><input id="commissionRate" inputmode="decimal" /><i>%</i></div></label>
       <small id="catNote" class="muted"></small>

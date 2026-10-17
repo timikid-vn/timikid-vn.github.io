@@ -7,8 +7,9 @@
 
 export const SOURCES = {
   shopeeFees: { title: 'Shopee – Thuế GTGT trên các loại phí (05/2026–12/2026)', url: 'https://banhang.shopee.vn/edu/article/25329', effective: '23/05/2026 (shop thường), 29/05/2026 (Mall)' },
-  shopeeMallFixed: { title: 'Shopee Mall – Phí cố định từ 08/05/2026 (PDF)', url: 'https://banhang.shopee.vn/edu/article/2579', effective: '08/05/2026' },
-  shopeeMallBooks: { title: 'Shopee Mall – Phí cố định Sách & Tạp chí', url: 'https://banhang.shopee.vn/edu/article/28220', effective: '04/10/2026' },
+  shopeeRegularFixedPdf: { title: 'Shopee – Bảng Phí cố định Người bán thường (PDF chính thức, 1.439 ngành, đã gồm VAT 8%) – 1.435 ngành sau khi gộp 4 dòng trùng', url: 'https://banhang.shopee.vn/edu/article/25329', effective: '23/05/2026' },
+  shopeeMallFixedPdf: { title: 'Shopee Mall – Phí Cố Định từ 29.05.2026 (PDF chính thức, 1.656 dòng, đã gồm VAT 8%) – 1.427 ngành sau khi gộp các dòng trùng', url: 'https://banhang.shopee.vn/edu/article/2579', effective: '29/05/2026' },
+  shopeeMallBooks: { title: 'Shopee Mall – Cập nhật phí cố định Sách (Giáo Dục 13%; Ngoại Ngữ, Thiếu Nhi, Hướng Nghiệp, Truyện Tranh 12,5%)', url: 'https://banhang.shopee.vn/edu/article/28220', effective: '04/10/2026' },
   shopeeGhn: { title: 'GHN – Tổng hợp phí Shopee 2026 (nguồn thứ cấp)', url: 'https://ghn.vn/blogs/tip-ban-hang/tong-hop-cac-loai-phi-ban-hang-tren-shopee-moi-nhat', effective: '2026' },
   tiktokFees: { title: 'TikTok Shop Academy – Introduction to Seller Fees', url: 'https://seller-vn.tiktok.com/university/essay?knowledge_id=8858869405370113', effective: 'Phí giao dịch 09/05/2026; hoa hồng shop thường 03/07/2026, Mall 03/08/2026' },
   tiktokMallNews: { title: 'BigSeller – Bảng hoa hồng TikTok Mall từ 03/08/2026 (nguồn thứ cấp)', url: 'https://www.bigseller.com/blog/articleDetails/4736/tiktok-shop-tang-phi-hoa-hong-ban-hang-viet-nam.htm', effective: '03/08/2026' },
@@ -64,7 +65,6 @@ export const PLATFORM_FEES = {
     { id: 'transaction', name: 'Phí xử lý giao dịch (phí thanh toán)', type: 'percent', value: 6, cap: 0, on: true, verified: true },
     { id: 'infra', name: 'Phí hạ tầng', type: 'fixed', value: 3000, on: true, verified: true },
     { id: 'voucherXtra', name: 'Gói Voucher Xtra', type: 'percent', value: 5.5, cap: 50000, on: false, verified: true },
-    { id: 'freeshipXtra', name: 'Gói Freeship Xtra', type: 'percent', value: 6, cap: 50000, on: false, verified: false },
     { id: 'piship', name: 'PiShip (tiết kiệm vận chuyển)', type: 'fixed', value: 2700, on: false, verified: true },
   ],
   tiktok: [

@@ -1,31 +1,52 @@
 import './style.css';
 import { CATEGORIES, PLATFORM_FEES, TAX, SOURCES } from './fees.js';
 import { calculate, fmtVND, parseVND, fmtThousands } from './calc.js';
+import { shopeeCategories, SHOPEE_FIXED_SOURCES } from './shopeeCategories.js';
 
-const KEY = 'spc-state-v1';
+const KEY = 'spc-state-v2'; // v2: ngành Shopee đầy đủ từ PDF, bỏ Freeship Xtra
 const $ = (id) => document.getElementById(id);
 const defaultFees = () => ({ shopee: [...PLATFORM_FEES.shopee, TAX].map((f) => ({ ...f })), tiktok: [...PLATFORM_FEES.tiktok, TAX].map((f) => ({ ...f })) });
-const blank = { platform: 'shopee', shopType: 0, category: 'thoitrang', rateOverride: {}, values: {}, staff: { mode: 'monthly', value: '' }, ads: { mode: 'percent', value: '' }, fees: defaultFees() };
+const blank = { platform: 'shopee', shopType: 0, cats: {}, catSearch: '', rateOverride: {}, values: {}, staff: { mode: 'monthly', value: '' }, ads: { mode: 'percent', value: '' }, fees: defaultFees() };
 let S;
 try { S = { ...blank, ...JSON.parse(localStorage.getItem(KEY) || '{}') }; } catch { S = { ...blank }; }
 const save = () => localStorage.setItem(KEY, JSON.stringify(S));
 
-const cat = () => CATEGORIES.find((c) => c.id === S.category) || CATEGORIES[0];
-const catKey = () => `${S.platform}-${S.shopType}-${S.category}`;
-const defRate = () => cat()[S.platform][S.shopType];
+// Danh sách ngành theo sàn + loại shop: [{key, group, name, rate, verified, note}]
+const SP = { 0: shopeeCategories('regular'), 1: shopeeCategories('mall') };
+const norm = (t) => String(t).normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/đ/gi, 'd').toLowerCase();
+function catList() {
+  if (S.platform === 'shopee') return SP[S.shopType].map((c) => ({ key: c.key, group: c.l1, name: c.path, rate: c.rate, verified: true, note: c.note }));
+  return CATEGORIES.map((c) => ({ key: c.id, group: 'TikTok Shop', name: c.name, ...c.tiktok[S.shopType] }));
+}
+const catSelKey = () => `${S.platform}-${S.shopType}`;
+const cat = () => { const l = catList(); return l.find((c) => c.key === S.cats?.[catSelKey()]) || l.find((c) => c.key === DEFAULT_CAT[S.platform]) || l[0]; };
+const DEFAULT_CAT = { shopee: 'Thời Trang Nữ|Áo|Áo sơ mi', tiktok: 'thoitrang' };
+const catKey = () => `${S.platform}-${S.shopType}-${cat().key}`;
+const defRate = () => cat();
 
 function renderSeg(id, val) { $(id).querySelectorAll('button').forEach((b) => b.classList.toggle('on', b.dataset.v == val)); }
 
 function renderStatic() {
   document.body.dataset.platform = S.platform;
   renderSeg('platform', S.platform); renderSeg('shopType', S.shopType);
-  $('category').innerHTML = CATEGORIES.map((c) => `<option value="${c.id}" ${c.id === S.category ? 'selected' : ''}>${c.name}</option>`).join('');
+  renderCatOptions();
   const d = defRate();
   $('commissionRate').value = S.rateOverride[catKey()] ?? d.rate;
   $('catBadge').textContent = d.verified ? '✓ đã xác minh' : '⚠️ chưa xác minh';
   $('catBadge').className = 'badge ' + (d.verified ? 'ok' : 'warn');
-  $('catNote').textContent = `Mặc định: ${d.rate}%${d.note ? ' — ' + d.note : ''}`;
+  $('catNote').textContent = `${d.group !== 'TikTok Shop' ? d.group + ' › ' : ''}${d.name} — mặc định ${d.rate}%${d.note ? ' (' + d.note + ')' : ''}`;
   renderFees();
+}
+
+function renderCatOptions() {
+  const q = norm($('catSearch').value || '');
+  const cur = cat();
+  const list = catList().filter((c) => !q || norm(c.group + ' ' + c.name).includes(q) || c.key === cur.key);
+  const groups = new Map();
+  for (const c of list) { if (!groups.has(c.group)) groups.set(c.group, []); groups.get(c.group).push(c); }
+  const esc = (t) => String(t).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/"/g, '&quot;');
+  $('category').innerHTML = [...groups].map(([g, items]) => `<optgroup label="${esc(g)}">${items.map((c) => `<option value="${esc(c.key)}" ${c.key === cur.key ? 'selected' : ''}>${esc(c.name)} — ${c.rate}%</option>`).join('')}</optgroup>`).join('');
+  $('catCount').textContent = q ? `${list.length} kết quả` : `${catList().length} ngành hàng`;
 }
 
 function costBox(key, label) {
@@ -101,7 +122,8 @@ document.addEventListener('input', (e) => {
     t.value = fmtThousands(t.value);
     const p = Math.max(0, t.value.length - fromEnd); t.setSelectionRange(p, p);
   }
-  if (t.id === 'category') { S.category = t.value; renderStatic(); }
+  if (t.id === 'category') { S.cats = { ...S.cats, [catSelKey()]: t.value }; renderStatic(); }
+  if (t.id === 'catSearch') { renderCatOptions(); return; }
   if (t.id === 'commissionRate') S.rateOverride[catKey()] = t.value;
   if (t.dataset.costval) S[t.dataset.costval].value = t.classList.contains('money') ? parseVND(t.value) : t.value.replace(',', '.');
   if (t.dataset.fee) { S.fees[S.platform][t.dataset.fee].on = t.checked; t.closest('.fee').classList.toggle('off', !t.checked); }
