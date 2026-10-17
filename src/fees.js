@@ -13,7 +13,7 @@ export const SOURCES = {
   shopeeMallBooks: { title: 'Shopee Mall – Cập nhật phí cố định Sách (Giáo Dục 13%; Ngoại Ngữ, Thiếu Nhi, Hướng Nghiệp, Truyện Tranh 12,5%)', url: 'https://banhang.shopee.vn/edu/article/28220', effective: '04/10/2026' },
   shopeeGhn: { title: 'GHN – Tổng hợp phí Shopee 2026 (nguồn thứ cấp)', url: 'https://ghn.vn/blogs/tip-ban-hang/tong-hop-cac-loai-phi-ban-hang-tren-shopee-moi-nhat', effective: '2026' },
   tiktokFees: { title: 'TikTok Shop Academy – Introduction to Seller Fees', url: 'https://seller-vn.tiktok.com/university/essay?knowledge_id=8858869405370113', effective: 'Phí giao dịch 09/05/2026; hoa hồng shop thường 03/07/2026, Mall 03/08/2026' },
-  tiktokMallNews: { title: 'BigSeller – Bảng hoa hồng TikTok Mall từ 03/08/2026 (nguồn thứ cấp)', url: 'https://www.bigseller.com/blog/articleDetails/4736/tiktok-shop-tang-phi-hoa-hong-ban-hang-viet-nam.htm', effective: '03/08/2026' },
+  tiktokCommissionPdf: { title: 'TikTok Shop – Marketplace commission rate from 3 July 2026 and Mall commission rate from 3 August 2026 (PDF chính thức, 2.040 dòng, đã gồm thuế)', url: 'https://seller-vn.tiktok.com/university/essay?knowledge_id=8858869405370113', effective: 'shop thường 03/07/2026; Mall 03/08/2026' },
   tax: { title: 'Thuế khấu trừ hộ/cá nhân kinh doanh TMĐT (NĐ 117/2025): 1% GTGT + 0,5% TNCN', url: 'https://thuvienphapluat.vn', effective: '01/07/2025' },
 };
 
@@ -69,9 +69,9 @@ export const PLATFORM_FEES = {
     { id: 'piship', name: 'PiShip (tiết kiệm vận chuyển)', type: 'fixed', value: 2700, on: false, verified: true },
   ],
   tiktok: [
-    { id: 'transaction', name: 'Phí giao dịch', type: 'percent', value: 6, cap: 0, on: true, verified: true },
-    { id: 'processing', name: 'Phí xử lý đơn hàng', type: 'fixed', value: 3000, on: true, verified: true },
-    { id: 'xtraVoucher', name: 'Chương trình Voucher/Freeship Xtra', type: 'percent', value: 4, cap: 50000, on: false, verified: false },
+    { id: 'transaction', name: 'Phí giao dịch (từ 09/05/2026, đã gồm thuế)', type: 'percent', value: 6, cap: 0, on: true, verified: true },
+    { id: 'processing', name: 'Phí xử lý đơn hàng (từ 27/10/2025, đã gồm thuế, mỗi đơn)', type: 'fixed', value: 3000, on: true, verified: true },
+    { id: 'xtraVoucher', name: 'Chương trình Voucher/Freeship Xtra (ước tính – không có trong nguồn chính thức)', type: 'percent', value: 4, cap: 50000, on: false, verified: false },
     { id: 'affiliate', name: 'Hoa hồng Affiliate (KOC/KOL)', type: 'percent', value: 10, cap: 0, on: false, verified: false, note: 'Tự đặt theo thỏa thuận' },
   ],
 };

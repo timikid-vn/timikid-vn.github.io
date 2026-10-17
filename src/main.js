@@ -2,9 +2,10 @@ import './style.css';
 import { CATEGORIES, PLATFORM_FEES, TAX, SOURCES } from './fees.js';
 import { calculate, fmtVND, parseVND, fmtThousands } from './calc.js';
 import { shopeeCategories } from './shopeeCategories.js';
+import { tiktokCategories } from './tiktokCategories.js';
 import { buildTree, walk, leaves, searchLeaves } from './categoryTree.js';
 
-const KEY = 'spc-state-v7'; // v2: ngành Shopee đầy đủ từ PDF, bỏ Freeship Xtra
+const KEY = 'spc-state-v8'; // v2: ngành Shopee đầy đủ từ PDF, bỏ Freeship Xtra
 const $ = (id) => document.getElementById(id);
 const defaultFees = () => ({ shopee: [...PLATFORM_FEES.shopee, TAX].map((f) => ({ ...f })), tiktok: [...PLATFORM_FEES.tiktok, TAX].map((f) => ({ ...f })) });
 const blank = { platform: 'shopee', shopType: 0, catPath: null, rateOverride: {}, values: {}, opex: { mode: 'vnd', value: '' }, ads: { mode: 'percent', value: '' }, fees: defaultFees() };
@@ -14,17 +15,18 @@ const save = () => localStorage.setItem(KEY, JSON.stringify(S));
 
 // Cây ngành theo sàn + loại shop (Shopee: tới 3 cấp từ PDF; TikTok: 1 cấp)
 const SP = { 0: shopeeCategories('regular'), 1: shopeeCategories('mall') };
+const TT = { 0: tiktokCategories('regular'), 1: tiktokCategories('mall') };
 const TREES = {};
 function tree() {
   const k = `${S.platform}-${S.shopType}`;
   if (!TREES[k]) {
     TREES[k] = buildTree(S.platform === 'shopee'
       ? SP[S.shopType].map((c) => ({ path: [c.l1, c.l2, c.l3].filter(Boolean), rate: c.rate, verified: true, note: c.note, key: c.key }))
-      : CATEGORIES.map((c) => ({ path: [c.name], key: c.id, ...c.tiktok[S.shopType] })));
+      : TT[S.shopType].map((c) => ({ path: [c.l1, c.l2, c.l3], rate: c.rate, verified: true, note: c.note, key: c.key })));
   }
   return TREES[k];
 }
-const DEFAULT_PATH = { shopee: ['Thời Trang Nữ', 'Áo', 'Áo sơ mi'], tiktok: [CATEGORIES.find((c) => c.id === 'thoitrang').name] };
+const DEFAULT_PATH = { shopee: ['Thời Trang Nữ', 'Áo', 'Áo sơ mi'], tiktok: ['Trang phục nữ & Đồ lót', 'Áo nữ', 'Áo cánh & Áo sơ mi'] };
 const PICK = { mobileDepth: null };
 // Đường dẫn đang chọn cho sàn hiện tại (chung cho thường/Mall — chuyển loại shop giữ nếu tồn tại)
 const curPath = () => (S.catPath?.[S.platform] ?? DEFAULT_PATH[S.platform]);

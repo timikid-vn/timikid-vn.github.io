@@ -1,7 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { shopeeCategories } from '../src/shopeeCategories.js';
 import { buildTree, leaves, walk, searchLeaves, pathOf } from '../src/categoryTree.js';
-import { CATEGORIES } from '../src/fees.js';
 
 const mk = (t) => buildTree(shopeeCategories(t).map((c) => ({ path: [c.l1, c.l2, c.l3].filter(Boolean), rate: c.rate, key: c.key })));
 const reg = mk('regular'), mall = mk('mall');
@@ -36,9 +35,5 @@ describe('Cây ngành hàng', () => {
   it('tìm kiếm không dấu nhảy thẳng tới lá', () => {
     const r = searchLeaves(reg, 'sua bau');
     expect(r[0].path).toEqual(['Mẹ & Bé', 'Chăm sóc sức khỏe mẹ', 'Sữa bầu']);
-  });
-  it('TikTok: cây 1 cấp', () => {
-    const t = buildTree(CATEGORIES.map((c) => ({ path: [c.name], ...c.tiktok[0] })));
-    expect(leaves(t).length).toBe(CATEGORIES.length);
   });
 });
