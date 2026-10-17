@@ -1,5 +1,7 @@
 import { describe, it, expect, beforeEach } from 'vitest';
 import { handle } from '../src/index.js';
+import { handle as authHandle } from '../../auth-worker/src/index.js';
+import { KV as AKV, makeSigningJwk } from '../../auth-worker/test/helpers.js';
 
 class KV {
   constructor() { this.m = new Map(); }
@@ -11,8 +13,19 @@ class KV {
 const ORIGIN = 'https://timikid-vn.github.io';
 const W = 'https://w.example.dev';
 let env, calls;
+// Máy chủ đăng nhập chung (timikid-auth) chạy giả lập trong test
+const authEnv = { USERS: new AKV(), AUTH_SIGNING_JWK: await makeSigningJwk(), ADMIN_EMAIL: 'duylinh30190@gmail.com', ADMIN_PASSWORD: 'admin-pass-rat-dai' };
+const A = async (path, body, token) => (await authHandle(new Request('https://a.dev' + path, { method: body ? 'POST' : 'GET', headers: { origin: ORIGIN, ...(token ? { authorization: 'Bearer ' + token } : {}) }, body: body ? JSON.stringify(body) : undefined }), authEnv)).json();
+const JWKS = await A('/.well-known/jwks.json');
+const ADMIN_TOKEN = (await A('/login', { email: 'duylinh30190@gmail.com', password: 'admin-pass-rat-dai' })).accessToken;
+async function userToken(email, action, apps) {
+  await A('/register', { email, password: 'mat-khau-123' });
+  if (action) await A('/admin/users/' + encodeURIComponent(email), { action: 'approve' }, ADMIN_TOKEN);
+  if (apps) await A('/admin/users/' + encodeURIComponent(email), { action: 'set_apps', apps }, ADMIN_TOKEN);
+  return (await A('/login', { email, password: 'mat-khau-123' })).accessToken;
+}
 const mkEnv = () => ({
-  SHOPS: new KV(), OWNER_PASSWORD: 'mat-khau-dai', SESSION_SECRET: 'sess', TOKEN_ENC_KEY: btoa(String.fromCharCode(...new Uint8Array(32).fill(3))),
+  SHOPS: new KV(), AUTH_JWKS: JWKS, TOKEN_ENC_KEY: btoa(String.fromCharCode(...new Uint8Array(32).fill(3))),
   SHOPEE_PARTNER_ID: '2001', SHOPEE_PARTNER_KEY: 'pk', TIKTOK_APP_KEY: 'ak', TIKTOK_APP_SECRET: 'as', ALLOWED_ORIGIN: ORIGIN, FRONTEND_URL: ORIGIN + '/',
 });
 const ok = (data) => new Response(JSON.stringify(data));
@@ -38,19 +51,23 @@ async function fakeFetch(url, init = {}) {
 }
 const req = (path, { method = 'GET', body, token, origin = ORIGIN } = {}) => new Request(W + path, { method, headers: { origin, ...(token ? { authorization: 'Bearer ' + token } : {}), ...(body ? { 'content-type': 'application/json' } : {}) }, body: body ? JSON.stringify(body) : undefined });
 const call = async (...a) => { const r = await handle(req(...a), env, fakeFetch); return { r, j: r.headers.get('content-type')?.includes('json') ? await r.json() : null }; };
-const login = async () => (await call('/api/login', { method: 'POST', body: { password: 'mat-khau-dai' } })).j.token;
+const login = async () => userToken(`u${Math.random()}@x.vn`, 'approve');
 
 beforeEach(() => { env = mkEnv(); calls = []; });
 
 describe('Worker API', () => {
-  it('chưa đặt OWNER_PASSWORD → đăng nhập tắt, báo rõ; chưa có khóa sàn → platform_not_configured', async () => {
-    env = { ...mkEnv(), OWNER_PASSWORD: undefined, SHOPEE_PARTNER_KEY: undefined, TIKTOK_APP_SECRET: undefined };
-    expect((await call('/api/status')).j).toMatchObject({ ready: true, login: false, shopee: false, tiktok: false });
-    const l = await call('/api/login', { method: 'POST', body: { password: '' } });
-    expect(l.r.status).toBe(503); expect(l.j.error).toBe('login_disabled'); expect(l.j.message).toMatch(/mật khẩu/);
-    expect((await call('/api/login', { method: 'POST', body: {} })).r.status).toBe(503);
+  it('chưa có khóa sàn → platform_not_configured; /api/login cũ → 410', async () => {
+    env = { ...mkEnv(), SHOPEE_PARTNER_KEY: undefined, TIKTOK_APP_SECRET: undefined };
+    expect((await call('/api/status')).j).toMatchObject({ ready: true, shopee: false, tiktok: false });
+    expect((await call('/api/login', { method: 'POST', body: { password: '' } })).r.status).toBe(410);
     expect((await call('/api/shops')).r.status).toBe(401);
     for (const pl of ['shopee', 'tiktok']) { const o = await call(`/api/oauth/${pl}/url`, { method: 'POST' }); expect(o.r.status).toBe(409); expect(o.j.error).toBe('platform_not_configured'); }
+  });
+  it('phiên timikid-auth: approved → vào được; pending/không có quyền app → 401', async () => {
+    expect((await call('/api/shops', { token: await login() })).r.status).toBe(200);
+    expect((await call('/api/shops', { token: ADMIN_TOKEN })).r.status).toBe(200);
+    expect(await userToken('pending@x.vn')).toBeUndefined(); // chưa duyệt → không có token
+    expect((await call('/api/shops', { token: await userToken('khac@x.vn', 'approve', ['app-khac']) })).r.status).toBe(401);
   });
   it('origin lạ gọi API → 403', async () => {
     const { r, j } = await call('/api/shops', { origin: 'https://evil.example' });
@@ -68,7 +85,6 @@ describe('Worker API', () => {
   });
   it('không có phiên → 401; sai mật khẩu → 401', async () => {
     expect((await call('/api/shops')).r.status).toBe(401);
-    expect((await call('/api/login', { method: 'POST', body: { password: 'sai' } })).r.status).toBe(401);
     expect((await call('/api/shops', { token: 'gia.mao' })).r.status).toBe(401);
   });
   it('Shopee: OAuth url → callback → shop lưu mã hóa → sản phẩm & chi tiết (giá model thấp nhất, đường dẫn ngành)', async () => {

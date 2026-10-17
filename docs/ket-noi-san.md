@@ -4,6 +4,16 @@ Dành cho anh Duy. Đọc từ trên xuống, làm lần lượt từng bước.
 
 ---
 
+## ⏳ Trạng thái hiện tại (17/10/2026)
+
+| Việc | Trạng thái |
+|---|---|
+| Shopee Partner ID `2034752` | ✅ Đây là **Live Partner ID**: Shopee Live chấp nhận chữ ký, còn sandbox báo `invalid_partner_id`. Partner Key đã nạp. |
+| Shopee **Redirect URL Domain** | ❗ **Anh cần khai báo** trong Shopee Console (App → Redirect URL Domain): `timikid-shop-connect.timikid-vn.workers.dev`. Hiện Shopee báo: *“The domain of redirect is not consistent with the Redirect URL Domain declared in console.”* |
+| TikTok App key `6k3gnffonvbtq` | ✅ Đã cấu hình, App secret đã nạp. |
+| TikTok **Service ID** | ❗ **Anh cần gửi.** Tài liệu chính thức yêu cầu link ủy quyền của Custom App có dạng `services.tiktokshop.com/open/authorize?service_id=…`. Service ID nằm ở trang chi tiết app trong Partner Center (App & Service). |
+| Đăng nhập | Dùng **tài khoản timikid chung** (email + mật khẩu, admin duyệt). Xem [dang-nhap-chung.md](dang-nhap-chung.md). ❗ Anh cần đặt **mật khẩu admin** qua form bảo mật. |
+
 ## 0. Tóm tắt nhanh
 
 Để nút **“Chọn shop”** trong app lấy được danh sách shop và sản phẩm thật, cần 3 thứ:
@@ -18,7 +28,7 @@ Dành cho anh Duy. Đọc từ trên xuống, làm lần lượt từng bước.
 - Shopee: `https://timikid-shop-connect.timikid-vn.workers.dev/oauth/shopee/callback`
 - TikTok Shop: `https://timikid-shop-connect.timikid-vn.workers.dev/oauth/tiktok/callback`
 
-> 🔒 **Bảo mật — quan trọng:** các mã bí mật (Partner Key của Shopee, App Secret của TikTok, mật khẩu chủ shop) **anh sẽ nhập qua một form bảo mật em gửi riêng, tuyệt đối KHÔNG dán vào khung chat**, không gửi qua Zalo, email hay ảnh chụp màn hình. Các mã này chỉ nằm trong phần “Secrets” của Cloudflare. Trình duyệt và trang web công khai không bao giờ nhìn thấy chúng, cũng không thấy token của shop.
+> 🔒 **Bảo mật — quan trọng:** các mã bí mật (Partner Key của Shopee, App Secret của TikTok, mật khẩu admin) **anh sẽ nhập qua một form bảo mật em gửi riêng, tuyệt đối KHÔNG dán vào khung chat**, không gửi qua Zalo, email hay ảnh chụp màn hình. Các mã này chỉ nằm trong phần “Secrets” của Cloudflare. Trình duyệt và trang web công khai không bao giờ nhìn thấy chúng, cũng không thấy token của shop.
 
 ---
 
@@ -97,10 +107,8 @@ Nguồn: [Partner Center docs – Sign your API request](https://partner.tiktoks
 
 - Tài khoản: Cloudflare của anh, gói Free. Tên miền phụ: `timikid-vn.workers.dev`.
 - Worker `timikid-shop-connect` đang chạy tại https://timikid-shop-connect.timikid-vn.workers.dev.
-- Kho KV `SHOPS` đã tạo. Hai khóa nội bộ `SESSION_SECRET` và `TOKEN_ENC_KEY` đã được sinh ngẫu nhiên và nạp thẳng vào Cloudflare Secrets. Không ai xem hay in các khóa này ra.
-- Còn thiếu (đã cài sẵn chế độ an toàn):
-  - **Mật khẩu chủ shop**: chưa đặt nên **đăng nhập đang tắt**, và không ai xem được dữ liệu.
-  - **Khóa app Shopee / TikTok**: chưa có nên nút Kết nối báo “đang chờ sàn duyệt app”.
+- Kho KV `SHOPS` đã tạo. Khóa mã hóa `TOKEN_ENC_KEY` đã được sinh ngẫu nhiên và nạp thẳng vào Cloudflare Secrets. Không ai xem hay in khóa này ra.
+- Đăng nhập do Worker riêng `timikid-auth` đảm nhận (https://timikid-auth.timikid-vn.workers.dev), dùng chung cho mọi app. Chỉ tài khoản **đã được admin duyệt** mới xem được dữ liệu shop.
 - Token của shop (access/refresh token) được **mã hóa AES-256** trước khi lưu và tự **làm mới** trước khi hết hạn:
   - Shopee: token 4 giờ, refresh token 30 ngày.
   - TikTok: token khoảng 7 ngày.
@@ -109,16 +117,18 @@ Nguồn: [Partner Center docs – Sign your API request](https://partner.tiktoks
 
 **Gửi trong chat được** (không bí mật):
 - [ ] Đã duyệt hồ sơ Shopee chưa / app đã Live chưa.
-- [ ] **Shopee Partner ID** (Test và/hoặc Live).
-- [ ] **TikTok App key**, và **Service ID** nếu có.
+- [x] **Shopee Partner ID**: đã nhận `2034752` (Live).
+- [x] **TikTok App key**: đã nhận `6k3gnffonvbtq`.
+- [ ] **TikTok Service ID**.
+- [ ] Xác nhận đã khai báo **Redirect URL Domain** bên Shopee.
 - [ ] Shop nào là **Mall** (sau khi kết nối anh cũng có thể tự bật/tắt công tắc Mall cạnh từng shop).
 
 **Chỉ nhập qua form bảo mật, KHÔNG gửi trong chat:**
-- [ ] **Shopee Partner Key**.
-- [ ] **TikTok App secret**.
-- [ ] **Mật khẩu chủ shop** cho app (anh tự đặt, nên dài từ 12 ký tự). Mật khẩu này dùng để đăng nhập nút “Chọn shop”, để người lạ không xem được dữ liệu shop.
+- [x] **Shopee Partner Key**: đã nạp.
+- [x] **TikTok App secret**: đã nạp.
+- [ ] **Mật khẩu admin** (`ADMIN_PASSWORD` của Worker `timikid-auth`) cho tài khoản `duylinh30190@gmail.com`. Anh tự đặt, nên dài từ 14 ký tự.
 
-Hai khóa nội bộ `SESSION_SECRET` và `TOKEN_ENC_KEY` sẽ được em sinh ngẫu nhiên và nạp thẳng vào Cloudflare. Không ai cần xem hai khóa này.
+Các khóa nội bộ (`TOKEN_ENC_KEY`, khóa ký phiên `AUTH_SIGNING_JWK`) đã được sinh ngẫu nhiên và nạp thẳng vào Cloudflare. Không ai cần xem.
 
 ---
 
@@ -135,15 +145,16 @@ Hai khóa nội bộ `SESSION_SECRET` và `TOKEN_ENC_KEY` sẽ được em sinh 
 ## Phụ lục kỹ thuật (cho người cài đặt)
 
 - Mã máy chủ: thư mục `worker/` (Cloudflare Worker). Biến môi trường ghi trong `worker/wrangler.toml`.
-- Secrets: `OWNER_PASSWORD`, `SESSION_SECRET`, `TOKEN_ENC_KEY` (32 byte, base64), `SHOPEE_PARTNER_ID`, `SHOPEE_PARTNER_KEY`, `TIKTOK_APP_KEY`, `TIKTOK_APP_SECRET`, và `TIKTOK_SERVICE_ID` (tùy chọn).
+- Secrets: `TOKEN_ENC_KEY` (32 byte, base64), `SHOPEE_PARTNER_KEY`, `TIKTOK_APP_SECRET`.
+- Vars (`wrangler.toml`): `SHOPEE_PARTNER_ID`, `TIKTOK_APP_KEY`, `TIKTOK_SERVICE_ID`, `AUTH_ISSUER`. Service binding `AUTH` trỏ tới Worker `timikid-auth`.
+- Kiểm tra cấu hình Shopee (chỉ trả mã lỗi, không trả dữ liệu): `GET /api/diag/shopee`.
 - Thử với sandbox Shopee: bỏ dấu `#` ở dòng `SHOPEE_HOST` trong `wrangler.toml` và dùng Test Partner ID/Key.
 - Các lệnh (wrangler 4 cần Node ≥ 22):
   ```
   cd worker && npm i
   npx wrangler kv namespace create SHOPS      # dán id vào wrangler.toml
   openssl rand -base64 32 | npx wrangler secret put TOKEN_ENC_KEY
-  openssl rand -base64 32 | npx wrangler secret put SESSION_SECRET
-  npx wrangler secret put OWNER_PASSWORD      # ... và các secret còn lại
+  npx wrangler secret put SHOPEE_PARTNER_KEY  # ... và TIKTOK_APP_SECRET
   npx wrangler deploy
   ```
 - Frontend: đặt biến repo `SHOP_API_URL` (GitHub → Settings → Secrets and variables → Actions → Variables) bằng URL Worker, rồi chạy lại workflow deploy.

@@ -1,21 +1,24 @@
 // Cloudflare Worker: kết nối shop Shopee & TikTok Shop cho máy tính lãi lỗ.
 // Token của sàn chỉ nằm trong KV (mã hóa AES-GCM), không bao giờ trả về trình duyệt.
-import { encryptJSON, decryptJSON, makeSession, verifySession, safeEqual, randomId } from './crypto.js';
+import { encryptJSON, decryptJSON, randomId } from './crypto.js';
+import { verifyAccess, DEFAULT_ISSUER } from '../../auth-worker/client/verify.js';
+
+export const APP_ID = 'shop-connect';
 import * as shopee from './shopee.js';
 import * as tiktok from './tiktok.js';
 
-const SESSION_TTL = 7 * 24 * 3600;
 const STATE_TTL = 600;
 
 const configured = (env) => ({
   shopee: !!(env.SHOPEE_PARTNER_ID && env.SHOPEE_PARTNER_KEY),
   tiktok: !!(env.TIKTOK_APP_KEY && env.TIKTOK_APP_SECRET),
-  // lõi: khóa phiên + khóa mã hóa + KV. Mật khẩu chủ shop chưa đặt → chỉ tắt đăng nhập.
-  ready: !!(env.SESSION_SECRET && env.TOKEN_ENC_KEY && env.SHOPS),
-  login: !!env.OWNER_PASSWORD,
+  // lõi: khóa mã hóa + KV. Đăng nhập dùng tài khoản chung timikid-auth (admin duyệt).
+  ready: !!(env.TOKEN_ENC_KEY && env.SHOPS),
+  auth: env.AUTH_ISSUER || DEFAULT_ISSUER,
 });
 const MSG = {
-  login_disabled: 'Chưa đặt mật khẩu chủ shop (OWNER_PASSWORD) — đăng nhập đang tắt.',
+  use_central_login: 'Đăng nhập bằng tài khoản timikid (timikid-auth), không dùng mật khẩu riêng nữa.',
+  unauthorized: 'Cần đăng nhập bằng tài khoản timikid đã được admin duyệt.',
   platform_not_configured: 'Chưa cấu hình khóa app của sàn này — đang chờ sàn duyệt app.',
   not_configured: 'Máy chủ kết nối chưa được cấu hình.',
   forbidden_origin: 'Nguồn (origin) không được phép.',
@@ -64,9 +67,10 @@ export async function validTokens(env, rec, fetchFn = fetch) {
   return rec.tokens;
 }
 
+/** Phiên do timikid-auth cấp (JWT ES256), chỉ người đã được duyệt và có quyền vào app này */
 async function authed(env, req) {
   const h = req.headers.get('authorization') || '';
-  return verifySession(env.SESSION_SECRET, h.replace(/^Bearer\s+/i, ''));
+  return verifyAccess(env, h.replace(/^Bearer\s+/i, ''), { app: APP_ID });
 }
 
 export async function handle(req, env, fetchFn = fetch) {
@@ -81,14 +85,22 @@ export async function handle(req, env, fetchFn = fetch) {
   if (p.startsWith('/api/') && origin && !cors(env, req)['access-control-allow-origin']) return E('forbidden_origin', 403);
 
   if (p === '/api/status' || p === '/health' || p === '/') return J({ ...cfg, ok: true });
+  if (p === '/api/diag/shopee' && cfg.shopee) {
+    // Chỉ trả mã lỗi, không trả dữ liệu shop
+    const [live, sandbox] = await Promise.all([shopee.probe(env, shopee.SHOPEE_LIVE, fetchFn), shopee.probe(env, shopee.SHOPEE_SANDBOX, fetchFn)]);
+    // Thử mở link ủy quyền (không tạo state, chỉ xem Shopee có báo lỗi sign/partner không)
+    let auth = null;
+    try {
+      const r = await fetchFn(await shopee.authUrl(env, `${url.origin}/oauth/shopee/callback?state=diag`), { redirect: 'manual' });
+      const txt = r.status < 300 ? (await r.text()).slice(0, 4000) : '';
+      const err = txt.match(/"error"\s*:\s*"([^"]+)"/)?.[1] || (/(error_sign|invalid_partner|wrong sign)/i.exec(txt)?.[1] ?? null);
+      auth = { msg: (txt.match(/"message"\s*:\s*"([^"]{0,200})"/) || [])[1] || null, ctype: r.headers.get('content-type'), len: txt.length, http: r.status, redirect_host: r.headers.get('location') ? new URL(r.headers.get('location'), 'https://x').host : null, error: err, looks_like_login_page: /<html/i.test(txt) && !err };
+    } catch (e) { auth = { error: 'network' }; }
+    return J({ partner_id: String(env.SHOPEE_PARTNER_ID), auth_partner: auth, host_in_use: env.SHOPEE_HOST || shopee.SHOPEE_LIVE, live, sandbox });
+  }
   if (!cfg.ready) return E('not_configured', 503);
 
-  if (p === '/api/login' && req.method === 'POST') {
-    if (!cfg.login) return E('login_disabled', 503);
-    const body = await req.json().catch(() => ({}));
-    if (!safeEqual(body.password, env.OWNER_PASSWORD)) { await new Promise((r) => setTimeout(r, 400)); return J({ error: 'sai_mat_khau' }, 401); }
-    return J({ token: await makeSession(env.SESSION_SECRET, SESSION_TTL), expiresIn: SESSION_TTL });
-  }
+  if (p === '/api/login') return E('use_central_login', 410);
 
   // ---- OAuth callback: sàn chuyển trình duyệt về đây (không có header Authorization) → kiểm tra state
   const cb = p.match(/^\/oauth\/(shopee|tiktok)\/callback$/);

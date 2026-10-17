@@ -89,3 +89,14 @@ export function categoryPath(categories, id) {
   while (c && guard++ < 10) { out.unshift(c.name); c = byId.get(c.parent); }
   return out;
 }
+
+/** Gọi thử API công khai (không lộ dữ liệu): cho biết partner_id/key có hợp lệ trên host đó không */
+export async function probe(env, host, fetchFn = fetch) {
+  const path = '/api/v2/public/get_shops_by_partner', ts = now();
+  const sign = await signPublic(env.SHOPEE_PARTNER_KEY, env.SHOPEE_PARTNER_ID, path, ts);
+  try {
+    const r = await fetchFn(`${host}${path}?partner_id=${env.SHOPEE_PARTNER_ID}&timestamp=${ts}&sign=${sign}&page_size=1&page_no=1`);
+    const j = await r.json().catch(() => ({}));
+    return { http: r.status, ok: !j.error, error: j.error || null, message: j.error ? (j.message || null) : null };
+  } catch (e) { return { ok: false, error: 'network', message: String(e.message || e) }; }
+}

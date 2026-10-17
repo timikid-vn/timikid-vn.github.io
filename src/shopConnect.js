@@ -1,7 +1,8 @@
 // Popup "Chọn shop": kết nối Shopee / TikTok Shop qua backend (Cloudflare Worker).
 // Token của sàn không bao giờ tới trình duyệt — ở đây chỉ giữ phiên đăng nhập chủ shop.
 const API = (import.meta.env?.VITE_SHOP_API || '').replace(/\/+$/, '');
-const SKEY = 'spc-shop-session';
+import { createAuth } from '../public/auth/timikid-auth.js';
+const auth = createAuth({ url: import.meta.env?.VITE_AUTH_URL || undefined, app: 'shop-connect' });
 const esc = (t) => String(t ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/"/g, '&quot;');
 const fmt = (n) => (n == null ? '—' : Math.round(n).toLocaleString('vi-VN') + ' ₫');
 const ICON = { shopee: '<svg viewBox="0 0 32 32" width="20" height="20"><rect width="32" height="32" rx="9" fill="#ee4d2d"/><path d="M7.5 12.5h17l-1.3 12a2 2 0 0 1-2 1.8H10.8a2 2 0 0 1-2-1.8z" fill="#fff"/></svg>', tiktok: '<svg viewBox="0 0 32 32" width="20" height="20"><rect width="32" height="32" rx="9" fill="#111"/><path d="M18 7v12.5a3.5 3.5 0 1 1-3-3.46V13a6.5 6.5 0 1 0 6 6.48V12.5a7 7 0 0 0 4 1.3V10.6A4 4 0 0 1 21 7z" fill="#fff"/></svg>' };
@@ -11,11 +12,13 @@ export function initShopConnect({ apply }) {
   const dlg = document.getElementById('shopDialog');
   const body = document.getElementById('shopBody');
   let status = null, view = 'shops', curShop = null, products = [], next = null, msg = '';
-  const token = () => localStorage.getItem(SKEY) || '';
+  let authTab = 'login', noAccess = false;
   async function api(path, opt = {}) {
-    const r = await fetch(API + path, { ...opt, headers: { 'content-type': 'application/json', ...(token() ? { authorization: 'Bearer ' + token() } : {}), ...(opt.headers || {}) } });
+    const t = await auth.getAccessToken();
+    if (!t) throw Object.assign(new Error('Cần đăng nhập'), { auth: true });
+    const r = await fetch(API + path, { ...opt, headers: { 'content-type': 'application/json', authorization: 'Bearer ' + t, ...(opt.headers || {}) } });
     const j = await r.json().catch(() => ({}));
-    if (r.status === 401 && path !== '/api/login') { localStorage.removeItem(SKEY); throw Object.assign(new Error('Phiên đăng nhập hết hạn'), { auth: true }); }
+    if (r.status === 401) { noAccess = true; throw Object.assign(new Error(j.message || 'Không có quyền'), { auth: true }); }
     if (!r.ok) throw new Error(j.message || j.error || 'Lỗi ' + r.status);
     return j;
   }
@@ -24,12 +27,19 @@ export function initShopConnect({ apply }) {
 
   async function render() {
     if (!API) return set(notReady());
-    try { status = status || (await api('/api/status')); } catch { return set(notReady('<br/>(Không liên lạc được máy chủ kết nối.)')); }
+    try { status = status || (await fetch(API + '/api/status').then((r) => r.json())); } catch { return set(notReady('<br/>(Không liên lạc được máy chủ kết nối.)')); }
     if (!status.ready) return set(notReady());
-    if (!token() && status.login === false) return set(`<div class="sc-empty"><b>Đăng nhập đang tắt</b><p class="muted">Máy chủ kết nối đã chạy nhưng chưa đặt mật khẩu chủ shop.${!status.shopee && !status.tiktok ? ' Khóa app Shopee / TikTok Shop cũng đang chờ sàn duyệt.' : ''}</p></div>`);
-    if (!token()) {
-      return set(`<form id="scLogin" class="sc-login"><label>Mật khẩu chủ shop<input type="password" id="scPass" autocomplete="current-password" required/></label><button class="btn" type="submit">Đăng nhập</button><p class="muted">Chỉ chủ shop mới xem được dữ liệu shop.</p></form>`);
+    if (!auth.user || !(await auth.getAccessToken())) {
+      const reg = authTab === 'register';
+      return set(`<div class="sc-tabs"><button type="button" data-tab="login" class="${reg ? '' : 'on'}">Đăng nhập</button><button type="button" data-tab="register" class="${reg ? 'on' : ''}">Đăng ký</button></div>
+        <form id="scLogin" class="sc-login" data-mode="${reg ? 'register' : 'login'}">
+          ${reg ? '<label>Tên<input id="scName" autocomplete="name" maxlength="80"/></label>' : ''}
+          <label>Email<input type="email" id="scEmail" autocomplete="username" required/></label>
+          <label>Mật khẩu<input type="password" id="scPass" autocomplete="${reg ? 'new-password' : 'current-password'}" minlength="${reg ? 10 : 1}" required/></label>
+          <button class="btn" type="submit">${reg ? 'Đăng ký' : 'Đăng nhập'}</button>
+          <p class="muted">${reg ? 'Mật khẩu ít nhất 10 ký tự. Tài khoản mới cần admin duyệt mới dùng được.' : 'Tài khoản timikid dùng chung cho mọi app của timikid-vn.'}</p></form>`);
     }
+    if (noAccess) return set(`<div class="sc-empty"><b>Tài khoản chưa có quyền dùng app này</b><p class="muted">Nhờ admin cấp quyền “shop-connect” hoặc “tất cả app”.</p><button type="button" class="link" id="scLogout">Đăng xuất</button></div>`);
     if (view === 'products') return renderProducts();
     set('<p class="muted">Đang tải danh sách shop…</p>');
     try {
@@ -39,7 +49,7 @@ export function initShopConnect({ apply }) {
           <label class="sc-mall" title="Shop Mall?"><span class="switch"><input type="checkbox" data-mall="${esc(s.platform)}|${esc(s.id)}" ${s.mall ? 'checked' : ''}/><span></span></span>Mall</label>
           <button type="button" class="sc-x" data-disc="${esc(s.platform)}|${esc(s.id)}" title="Ngắt kết nối" aria-label="Ngắt kết nối">✕</button></div>`).join('')}</div>` : '<p class="muted">Chưa có shop nào được kết nối.</p>'}
         <div class="sc-actions">${btn('shopee')}${btn('tiktok')}</div>
-        <p class="muted sc-foot">Bạn sẽ được chuyển sang trang ủy quyền chính thức của sàn. <button type="button" class="link" id="scLogout">Đăng xuất</button></p>`);
+        <p class="muted sc-foot">Bạn sẽ được chuyển sang trang ủy quyền chính thức của sàn. <button type="button" class="link" id="scLogout">Đăng xuất ${esc(auth.user?.email || '')}</button></p>`);
     } catch (e) { if (e.auth) return render(); set(`<p class="sc-msg err">${esc(e.message)}</p>`); }
   }
 
@@ -63,7 +73,8 @@ export function initShopConnect({ apply }) {
     if (e.target === dlg) return dlg.close();
     const b = e.target.closest('button'); if (!b) return;
     if (b.id === 'shopClose') return dlg.close();
-    if (b.id === 'scLogout') { localStorage.removeItem(SKEY); return render(); }
+    if (b.id === 'scLogout') { await auth.logout(); noAccess = false; return render(); }
+    if (b.dataset.tab) { authTab = b.dataset.tab; return render(); }
     if (b.id === 'scBack') { view = 'shops'; return render(); }
     if (b.id === 'scMore') return renderProducts(true);
     if (b.dataset.connect) {
@@ -102,8 +113,12 @@ export function initShopConnect({ apply }) {
   dlg.addEventListener('submit', async (e) => {
     if (e.target.id !== 'scLogin') return;
     e.preventDefault();
-    try { const { token: t } = await api('/api/login', { method: 'POST', body: JSON.stringify({ password: document.getElementById('scPass').value }) }); localStorage.setItem(SKEY, t); }
-    catch { msg = 'Sai mật khẩu.'; }
+    const v = (id) => document.getElementById(id)?.value || '';
+    const btn = e.target.querySelector('button[type=submit]'); btn.disabled = true;
+    try {
+      if (e.target.dataset.mode === 'register') { await auth.register(v('scEmail'), v('scPass'), v('scName')); msg = 'Đã đăng ký. Tài khoản đang chờ admin duyệt.'; authTab = 'login'; }
+      else { await auth.login(v('scEmail'), v('scPass')); noAccess = false; }
+    } catch (err) { msg = err.message; }
     render();
   });
   document.getElementById('shopOpen').addEventListener('click', () => { view = 'shops'; dlg.showModal(); render(); });

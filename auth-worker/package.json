@@ -1,0 +1,1 @@
+{ "name": "timikid-auth", "private": true, "type": "module", "scripts": { "deploy": "wrangler deploy" } }
