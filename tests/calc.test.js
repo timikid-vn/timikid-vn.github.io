@@ -48,7 +48,7 @@ describe('calculate', () => {
     const r = calculate({ price: 100000, cost: 50000, fees: [], ads: { mode: 'vnd', value: 10000 }, ordersPerMonth: 100 });
     expect(r.profit).toBe(40000); expect(r.breakEvenRoas).toBeCloseTo(2); expect(r.monthlyProfit).toBe(4_000_000);
   });
-  it('nhân sự & đóng gói (opex) + quảng cáo tách riêng', () => {
+  it('nhân sự (opex) + quảng cáo tách riêng', () => {
     const r = calculate({ price: 200000, cost: 100000, fees: [], opex: { mode: 'vnd', value: 5000 }, ads: { mode: 'percent', value: 10 } });
     expect(r.opex).toBe(5000); expect(r.ads).toBe(20000); expect(r.profit).toBe(75000);
   });

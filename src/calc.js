@@ -18,8 +18,8 @@ export function costPerOrder(item, price, ordersPerMonth) {
 
 /**
  * input: { price, cost, commissionRate, fees:[{name,type,value,cap,on,isTax}],
- *          opex (nhân sự & đóng gói), ads, ordersPerMonth }
- * opex/ads: { mode: 'vnd'|'percent'|'monthly', value }
+ *          opex (nhân sự), pack (phí đóng gói), ads, ordersPerMonth }
+ * opex/pack/ads: { mode: 'vnd'|'percent'|'monthly', value }
  * Phí sàn tính trực tiếp trên giá bán; mỗi dòng làm tròn tới đồng như màn hình Shopee.
  */
 function feeLines(price, input) {
@@ -42,16 +42,17 @@ export function calculate(input) {
   const payout = revenue - tax; // thực nhận sau thuế khấu trừ
 
   const opex = costPerOrder(input.opex, price, input.ordersPerMonth);
+  const pack = costPerOrder(input.pack, price, input.ordersPerMonth); // chi phí của người bán, không trừ vào tiền sàn trả
   const ads = costPerOrder(input.ads, price, input.ordersPerMonth);
   const cost = Math.round(num(input.cost));
-  const totalCost = cost + opex + ads;
+  const totalCost = cost + opex + pack + ads;
   const profit = payout - totalCost;
   const orders = num(input.ordersPerMonth);
   const profitBeforeAds = profit + ads;
 
   return {
     price, lines, platformFees, revenue, taxLines, tax, payout,
-    cost, opex, ads, totalCost, profit,
+    cost, opex, pack, ads, totalCost, profit,
     margin: price > 0 ? (profit / price) * 100 : 0,
     roi: totalCost > 0 ? (profit / totalCost) * 100 : 0,
     feePct: price > 0 ? (platformFees / price) * 100 : 0,
@@ -76,7 +77,7 @@ function profitOnly(input) {
   const price = num(input.price);
   const { lines, taxLines } = feeLines(price, input);
   const fees = [...lines, ...taxLines].reduce((s, l) => s + l.amount, 0);
-  return price - fees - Math.round(num(input.cost)) - costPerOrder(input.opex, price, input.ordersPerMonth) - costPerOrder(input.ads, price, input.ordersPerMonth);
+  return price - fees - Math.round(num(input.cost)) - costPerOrder(input.opex, price, input.ordersPerMonth) - costPerOrder(input.pack, price, input.ordersPerMonth) - costPerOrder(input.ads, price, input.ordersPerMonth);
 }
 
 export const fmtVND = (n) => (n == null || !Number.isFinite(n) ? '—' : Math.round(n).toLocaleString('vi-VN') + ' ₫');
