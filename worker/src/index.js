@@ -90,6 +90,7 @@ export async function handle(req, env, fetchFn = fetch) {
 
   if (p === '/api/status' || p === '/health' || p === '/') return J({ ...cfg, ok: true });
   if (p === '/api/diag/shopee' && cfg.shopee) {
+    if (!(await authed(env, req))) return E('unauthorized', 401); // chẩn đoán gọi Shopee bằng khóa app → chỉ cho người đã đăng nhập
     // Chỉ trả mã lỗi, không trả dữ liệu shop
     const [live, sandbox] = await Promise.all([shopee.probe(env, shopee.SHOPEE_LIVE, fetchFn), shopee.probe(env, shopee.SHOPEE_SANDBOX, fetchFn)]);
     // Thử mở link ủy quyền với từng redirect ứng viên (state giả "diag", không lưu) — chỉ xem Shopee có báo lỗi không

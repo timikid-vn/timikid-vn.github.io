@@ -3,44 +3,58 @@
 const API = (import.meta.env?.VITE_SHOP_API || '').replace(/\/+$/, '');
 import { createAuth } from '../public/auth/timikid-auth.js';
 import { choosePrice, priceRange } from './productPrice.js';
+import { createAccessGate, pendingStore } from './shopAccess.js';
 const auth = createAuth({ url: import.meta.env?.VITE_AUTH_URL || undefined, app: 'shop-connect' });
 const esc = (t) => String(t ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/"/g, '&quot;');
 const fmt = (n) => (n == null ? '—' : Math.round(n).toLocaleString('vi-VN') + ' ₫');
 const ICON = { shopee: '<svg viewBox="0 0 32 32" width="20" height="20"><rect width="32" height="32" rx="9" fill="#ee4d2d"/><path d="M7.5 12.5h17l-1.3 12a2 2 0 0 1-2 1.8H10.8a2 2 0 0 1-2-1.8z" fill="#fff"/></svg>', tiktok: '<svg viewBox="0 0 32 32" width="20" height="20"><rect width="32" height="32" rx="9" fill="#111"/><path d="M18 7v12.5a3.5 3.5 0 1 1-3-3.46V13a6.5 6.5 0 1 0 6 6.48V12.5a7 7 0 0 0 4 1.3V10.6A4 4 0 0 1 21 7z" fill="#fff"/></svg>' };
 const PNAME = { shopee: 'Shopee', tiktok: 'TikTok Shop' };
 
-export function initShopConnect({ apply }) {
+export function initShopConnect({ apply, onAccess = () => {} }) {
   const dlg = document.getElementById('shopDialog');
   const body = document.getElementById('shopBody');
   let status = null, view = 'shops', curShop = null, products = [], next = null, msg = '', query = '', detail = null, loading = false, reqId = 0, io = null;
-  let authTab = 'login', noAccess = false;
+  let authTab = 'login', noAccess = false, gate = null, booted = false, submitting = false;
+  const pending = pendingStore();
+  function resetShop() { curShop = null; view = 'shops'; products = []; next = null; detail = null; query = ''; reqId++; loading = false; io?.disconnect(); }
   async function api(path, opt = {}) {
     const t = await auth.getAccessToken();
     if (!t) throw Object.assign(new Error('Cần đăng nhập'), { auth: true });
     const r = await fetch(API + path, { ...opt, headers: { 'content-type': 'application/json', authorization: 'Bearer ' + t, ...(opt.headers || {}) } });
     const j = await r.json().catch(() => ({}));
-    if (r.status === 401) { noAccess = true; throw Object.assign(new Error(j.message || 'Không có quyền'), { auth: true }); }
+    if (r.status === 401) {
+      // Token bị từ chối (hết hạn / bị thu hồi) → thoát phiên ngay, xóa shop/sản phẩm đã chọn
+      msg = 'Phiên đăng nhập đã hết hạn hoặc bị thu hồi — hãy đăng nhập lại.';
+      submitting = true; await auth.logout(); submitting = false;
+      throw Object.assign(new Error(msg), { auth: true });
+    }
     if (!r.ok) throw new Error(j.message || j.error || 'Lỗi ' + r.status);
     return j;
   }
   const notReady = (extra = '') => `<div class="sc-empty"><b>Chưa cấu hình kết nối — đang chờ sàn duyệt app</b><p class="muted">Tính năng chọn shop sẽ hoạt động sau khi app Shopee / TikTok Shop được duyệt và máy chủ kết nối được cài đặt.${extra}</p><a class="link" href="https://github.com/timikid-vn/timikid-vn.github.io/blob/main/docs/ket-noi-san.md" target="_blank" rel="noopener">Xem hướng dẫn đăng ký ↗</a></div>`;
   const set = (h) => { body.innerHTML = (msg ? `<p class="sc-msg">${esc(msg)}</p>` : '') + h; msg = ''; };
 
-  async function render() {
-    if (!API) return set(notReady());
-    try { status = status || (await fetch(API + '/api/status').then((r) => r.json())); } catch { return set(notReady('<br/>(Không liên lạc được máy chủ kết nối.)')); }
-    if (!status.ready) return set(notReady());
-    if (!auth.user || !(await auth.getAccessToken())) {
+  function loginForm() {
+      const pend = pending.get();
       const reg = authTab === 'register';
-      return set(`<div class="sc-tabs"><button type="button" data-tab="login" class="${reg ? '' : 'on'}">Đăng nhập</button><button type="button" data-tab="register" class="${reg ? 'on' : ''}">Đăng ký</button></div>
+      return `<div class="sc-tabs"><button type="button" data-tab="login" class="${reg ? '' : 'on'}">Đăng nhập</button><button type="button" data-tab="register" class="${reg ? 'on' : ''}">Đăng ký</button></div>
         <form id="scLogin" class="sc-login" data-mode="${reg ? 'register' : 'login'}">
           ${reg ? '<label>Tên<input id="scName" autocomplete="name" maxlength="80"/></label>' : ''}
           <label>Email<input type="email" id="scEmail" autocomplete="username" required/></label>
           <label>Mật khẩu<input type="password" id="scPass" autocomplete="${reg ? 'new-password' : 'current-password'}" minlength="${reg ? 10 : 1}" required/></label>
           <button class="btn" type="submit">${reg ? 'Đăng ký' : 'Đăng nhập'}</button>
-          <p class="muted">${reg ? 'Mật khẩu ít nhất 10 ký tự. Tài khoản mới cần admin duyệt mới dùng được.' : 'Tài khoản timikid dùng chung cho mọi app của timikid-vn.'}</p></form>`);
-    }
+          ${pend ? `<p class="sc-msg warn">⏳ Tài khoản <b>${esc(pend)}</b> đang chờ admin duyệt — duyệt xong đăng nhập là dùng được.</p>` : ''}<p class="muted">${reg ? 'Mật khẩu ít nhất 10 ký tự. Tài khoản mới cần admin duyệt mới dùng được.' : 'Tài khoản timikid dùng chung cho mọi app của timikid-vn.'}</p></form>`;
+  }
+  async function render() {
+    if (!API) return set(notReady());
+    const st = gate.state();
+    if (st === 'noapp') noAccess = true;
+    // Chưa đăng nhập / chờ duyệt: chỉ hiện form đăng nhập — KHÔNG gọi máy chủ kết nối shop
+    if (st !== 'ok' && st !== 'noapp') return set(loginForm());
+    if (!(await auth.getAccessToken())) return set(loginForm()); // phiên hết hạn, làm mới thất bại
     if (noAccess) return set(`<div class="sc-empty"><b>Tài khoản chưa có quyền dùng app này</b><p class="muted">Nhờ admin cấp quyền “shop-connect” hoặc “tất cả app”.</p><button type="button" class="link" id="scLogout">Đăng xuất</button></div>`);
+    try { status = status || (await fetch(API + '/api/status').then((r) => r.json())); } catch { return set(notReady('<br/>(Không liên lạc được máy chủ kết nối.)')); }
+    if (!status.ready) return set(notReady());
     if (view === 'products') return renderProducts();
     set('<p class="muted">Đang tải danh sách shop…</p>');
     try {
@@ -114,7 +128,7 @@ export function initShopConnect({ apply }) {
     if (e.target === dlg) return dlg.close();
     const b = e.target.closest('button'); if (!b) return;
     if (b.id === 'shopClose') return dlg.close();
-    if (b.id === 'scLogout') { await auth.logout(); noAccess = false; return render(); }
+    if (b.id === 'scLogout') { noAccess = false; await auth.logout(); return render(); }
     if (b.dataset.tab) { authTab = b.dataset.tab; return render(); }
     if (b.id === 'scBack') { view = 'shops'; return render(); }
     if (b.id === 'scMore') return loadMore();
@@ -168,13 +182,33 @@ export function initShopConnect({ apply }) {
     e.preventDefault();
     const v = (id) => document.getElementById(id)?.value || '';
     const btn = e.target.querySelector('button[type=submit]'); btn.disabled = true;
+    submitting = true;
     try {
-      if (e.target.dataset.mode === 'register') { await auth.register(v('scEmail'), v('scPass'), v('scName')); msg = 'Đã đăng ký. Tài khoản đang chờ admin duyệt.'; authTab = 'login'; }
-      else { await auth.login(v('scEmail'), v('scPass')); noAccess = false; }
-    } catch (err) { msg = err.message; }
+      if (e.target.dataset.mode === 'register') { await auth.register(v('scEmail'), v('scPass'), v('scName')); pending.set(v('scEmail').trim().toLowerCase()); msg = 'Đã đăng ký. Tài khoản đang chờ admin duyệt.'; authTab = 'login'; }
+      else { noAccess = false; await auth.login(v('scEmail'), v('scPass')); pending.set(''); }
+    } catch (err) {
+      if (err.code === 'pending') { pending.set(v('scEmail').trim().toLowerCase()); msg = ''; } else msg = err.message;
+      if (err.code === 'revoked') pending.set('');
+    }
+    submitting = false;
     render();
   });
   document.getElementById('shopOpen').addEventListener('click', () => { view = 'shops'; dlg.showModal(); render(); });
+
+  // ---- Khóa "Chọn shop" khi chưa đăng nhập / chưa được duyệt
+  const openBtn = document.getElementById('shopOpen');
+  function syncLock(ok, st) {
+    openBtn.classList.toggle('locked', !ok);
+    const t = ok ? 'Chọn shop đã kết nối' : st === 'noapp' ? 'Tài khoản chưa có quyền chọn shop' : pending.get() ? 'Tài khoản đang chờ admin duyệt' : 'Đăng nhập để chọn shop & sản phẩm';
+    openBtn.title = t; openBtn.setAttribute('aria-label', t);
+  }
+  gate = createAccessGate(auth, (ok, st) => {
+    syncLock(ok, st);
+    if (!ok) { resetShop(); status = null; }
+    onAccess(ok);
+    if (dlg.open && booted && !submitting) render();
+  });
+  booted = true;
 
   // Quay về từ trang ủy quyền của sàn: #ket-noi=ok_shopee | loi_...
   const m = location.hash.match(/ket-noi=([\w-]+)/);
