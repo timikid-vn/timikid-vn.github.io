@@ -7,13 +7,14 @@ import { buildTree, walk, leaves } from './categoryTree.js';
 import { matchCategory, matchShopeeCategory } from './categoryMatch.js';
 import { searchCategories, highlight } from './categorySearch.js';
 import { initShopConnect } from './shopConnect.js';
+import { STATE_KEY, loadState } from './state.js';
 
-const KEY = 'spc-state-v9'; // v2: ngành Shopee đầy đủ từ PDF, bỏ Freeship Xtra
+const KEY = STATE_KEY;
 const $ = (id) => document.getElementById(id);
 const defaultFees = () => ({ shopee: [...PLATFORM_FEES.shopee, TAX].map((f) => ({ ...f })), tiktok: [...PLATFORM_FEES.tiktok, TAX].map((f) => ({ ...f })) });
-const blank = { platform: 'shopee', shopType: 0, catPath: null, rateOverride: {}, values: {}, opex: { mode: 'vnd', value: '' }, ads: { mode: 'percent', value: '' }, fees: defaultFees() };
+const blank = { platform: 'shopee', shopType: 0, catPath: null, rateOverride: {}, values: {}, opex: { mode: 'vnd', value: '' }, pack: { mode: 'vnd', value: '' }, ads: { mode: 'percent', value: '' }, fees: defaultFees() };
 let S;
-try { S = { ...blank, ...JSON.parse(localStorage.getItem(KEY) || '{}') }; } catch { S = { ...blank }; }
+try { S = loadState(localStorage, blank); } catch { S = { ...blank }; }
 const save = () => localStorage.setItem(KEY, JSON.stringify(S));
 
 // Cây ngành theo sàn + loại shop (Shopee: tới 3 cấp từ PDF; TikTok: 1 cấp)
@@ -109,13 +110,14 @@ function renderStatic() {
 const MODES = { vnd: '₫/đơn', percent: '% giá', monthly: '₫/tháng' };
 function costBox(key, label) {
   const c = S[key], pct = c.mode === 'percent';
-  return `<label>${label}<div class="suffix sel"><input data-costval="${key}" class="${pct ? '' : 'money'}" inputmode="${pct ? 'decimal' : 'numeric'}" value="${pct ? vn(c.value) : fmtThousands(c.value)}" placeholder="0"/>
+  return `<label>${label}<div class="suffix sel"><input data-costval="${key}" class="${pct ? '' : 'money'}" inputmode="${pct ? 'decimal' : 'numeric'}" maxlength="${pct ? 6 : 15}" value="${pct ? vn(c.value) : fmtThousands(c.value)}" placeholder="0"/>
     <select data-costmode="${key}" aria-label="Đơn vị">${Object.entries(MODES).map(([k, v]) => `<option value="${k}" ${k === c.mode ? 'selected' : ''}>${v}</option>`).join('')}</select></div></label>`;
 }
 function renderCosts() {
-  $('opexBox').innerHTML = costBox('opex', 'Nhân sự & đóng gói');
+  $('opexBox').innerHTML = costBox('opex', 'Nhân sự');
+  $('packBox').innerHTML = costBox('pack', 'Phí đóng gói');
   $('adsBox').innerHTML = costBox('ads', 'Chi phí quảng cáo');
-  const monthly = S.opex.mode === 'monthly' || S.ads.mode === 'monthly';
+  const monthly = ['opex', 'pack', 'ads'].some((k) => S[k].mode === 'monthly');
   $('ordersBox').classList.toggle('need', monthly);
   $('ordersHint').textContent = monthly ? 'Cần nhập để chia chi phí theo tháng cho mỗi đơn' : 'Để tính lãi/lỗ cả tháng (tùy chọn)';
 }
@@ -137,7 +139,7 @@ function readInputs() {
 function update() {
   S.values = readInputs();
   const rate = cat() ? Number(String($('commissionRate').value).replace(',', '.')) || 0 : 0;
-  const r = calculate({ ...S.values, commissionRate: rate, fees: S.fees[S.platform], opex: S.opex, ads: S.ads });
+  const r = calculate({ ...S.values, commissionRate: rate, fees: S.fees[S.platform], opex: S.opex, pack: S.pack, ads: S.ads });
   save();
   const pos = r.profit >= 0;
   const pct = (n) => (Number.isFinite(n) ? n.toLocaleString('vi-VN', { maximumFractionDigits: 1 }) + '%' : '—');
@@ -165,7 +167,7 @@ function update() {
     row(`= Doanh thu ${PN()} ước tính`, fmtVND(r.revenue), 'sum', '(như màn hình sàn, trước thuế)') +
     r.taxLines.map((l) => row('− ' + l.name, fmtVND(-l.amount), 'fl', `(${vn(l.rate)}%)`)).join('') +
     (r.taxLines.length ? row('= Thực nhận sau thuế', fmtVND(r.payout), 'sum') : '') +
-    row('− Giá vốn', fmtVND(-r.cost)) + row('− Nhân sự & đóng gói', fmtVND(-r.opex)) + row('− Quảng cáo', fmtVND(-r.ads)) +
+    row('− Giá vốn', fmtVND(-r.cost)) + row('− Nhân sự', fmtVND(-r.opex)) + row('− Phí đóng gói', fmtVND(-r.pack)) + row('− Quảng cáo', fmtVND(-r.ads)) +
     row(pos ? '= Lợi nhuận' : '= Lỗ', fmtVND(r.profit), 'sum ' + (pos ? 'tpos' : 'tneg'));
 }
 
@@ -198,7 +200,13 @@ document.addEventListener('input', (e) => {
   if (t.id === 'catSearch') { renderPicker(); return; }
   if (t.id === 'price' && S.fromShop) { S.fromShop = null; renderShopNotes(); }
   if (t.id === 'commissionRate') S.rateOverride[catKey()] = t.value;
-  if (t.dataset.costval) S[t.dataset.costval].value = t.classList.contains('money') ? parseVND(t.value) : t.value.replace(',', '.');
+  if (t.dataset.costval) {
+    if (!t.classList.contains('money')) { // % giá: chỉ số + 1 dấu thập phân, không nhận số âm
+      const c = t.value.replace(/[^\d.,]/g, '').replace(/^([^.,]*[.,])(.*)$/, (m, a, b) => a + b.replace(/[.,]/g, ''));
+      if (c !== t.value) t.value = c;
+    }
+    S[t.dataset.costval].value = t.classList.contains('money') ? parseVND(t.value) : t.value.replace(',', '.');
+  }
   if (t.dataset.fee) { S.fees[S.platform][t.dataset.fee].on = t.checked; t.closest('.fee').classList.toggle('off', !t.checked); }
   if (t.dataset.feeval) {
     const f = S.fees[S.platform][t.dataset.feeval];
