@@ -223,6 +223,11 @@ if ('IntersectionObserver' in window) new IntersectionObserver(([e]) => $('mbar'
 
 // ---- Chọn shop (kết nối sàn): đặt sàn + Mall, điền giá & ngành từ sản phẩm
 initShopConnect({
+  // Đăng xuất / hết phiên: bỏ shop, sản phẩm, ghi chú giá KM & gợi ý ngành — giữ nguyên các số đã nhập
+  onAccess(ok) {
+    if (ok || (!S.fromShop && !PICK.suggest)) return;
+    S.fromShop = null; PICK.suggest = null; save(); renderStatic(); update();
+  },
   apply({ platform, mall, price, categoryPath, productName, modelName, priceInfo }) {
     S.platform = platform; S.shopType = mall ? 1 : 0; PICK.mobileDepth = null; PICK.suggest = null;
     let matched = null, needPick = false;

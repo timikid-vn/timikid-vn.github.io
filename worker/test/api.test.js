@@ -69,6 +69,22 @@ describe('Worker API', () => {
     expect(await userToken('pending@x.vn')).toBeUndefined(); // chưa duyệt → không có token
     expect((await call('/api/shops', { token: await userToken('khac@x.vn', 'approve', ['app-khac']) })).r.status).toBe(401);
   });
+  it('mọi endpoint dữ liệu shop đều cần phiên approved (không token / token rác / chưa có quyền app → 401)', async () => {
+    const eps = [
+      ['/api/shops', 'GET'], ['/api/shops/shopee/123', 'GET'], ['/api/shops/shopee/123', 'PATCH'], ['/api/shops/shopee/123', 'DELETE'],
+      ['/api/shops/shopee/123/products', 'GET'], ['/api/shops/shopee/123/products?q=abc', 'GET'], ['/api/shops/shopee/123/products/1', 'GET'],
+      ['/api/shops/shopee/123/categories', 'GET'], ['/api/shops/tiktok/123/products', 'GET'],
+      ['/api/oauth/shopee/url', 'POST'], ['/api/oauth/tiktok/url', 'POST'], ['/api/diag/shopee', 'GET'],
+    ];
+    const noApp = await userToken('khac2@x.vn', 'approve', ['app-khac']);
+    for (const [path, method] of eps) {
+      for (const token of [undefined, 'rac.rac.rac', noApp]) {
+        const { r } = await call(path, { method, token, body: method === 'PATCH' ? { mall: true } : undefined });
+        expect([path, method, r.status]).toEqual([path, method, 401]);
+      }
+    }
+    expect(calls.length).toBe(0); // không gọi tới Shopee/TikTok khi chưa xác thực
+  });
   it('Shopee qua relay (SHOPEE_REDIRECT_URL): redirect trỏ relay, relay chuyển nguyên query → callback vẫn kiểm state', async () => {
     env.SHOPEE_REDIRECT_URL = 'https://n8n.timikid.com/webhook/shopee-callback';
     const t = await login();

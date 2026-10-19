@@ -34,6 +34,14 @@ export function createAuth({ url = AUTH_URL, app = '', storage = globalThis.loca
   }
   const take = (j) => { save({ user: j.user, accessToken: j.accessToken, refreshToken: j.refreshToken, accessExp: Date.now() + (j.expiresIn - 30) * 1000 }); return j.user; };
   let refreshing = null;
+  // Tab khác (cùng origin) đăng nhập / đăng xuất → đồng bộ ngay, không cần tải lại trang
+  if (storage === globalThis.localStorage && typeof globalThis.addEventListener === 'function') {
+    globalThis.addEventListener('storage', (e) => {
+      if (e.key !== KEY && e.key !== null) return;
+      try { st = JSON.parse(storage.getItem(KEY) || 'null') || {}; } catch { st = {}; }
+      listeners.forEach((f) => f(st.user || null));
+    });
+  }
   const api = {
     url, app,
     get user() { return st.user || null; },
