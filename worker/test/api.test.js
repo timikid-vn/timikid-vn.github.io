@@ -2,6 +2,7 @@ import { describe, it, expect, beforeEach } from 'vitest';
 import { handle } from '../src/index.js';
 import { handle as authHandle } from '../../auth-worker/src/index.js';
 import { KV as AKV, makeSigningJwk } from '../../auth-worker/test/helpers.js';
+import { mockNamespace } from './doMock.js';
 
 class KV {
   constructor() { this.m = new Map(); }
@@ -24,10 +25,10 @@ async function userToken(email, action, apps) {
   if (apps) await A('/admin/users/' + encodeURIComponent(email), { action: 'set_apps', apps }, ADMIN_TOKEN);
   return (await A('/login', { email, password: 'mat-khau-123' })).accessToken;
 }
-const mkEnv = () => ({
+const mkEnv = () => { const e = {
   SHOPS: new KV(), AUTH_JWKS: JWKS, TOKEN_ENC_KEY: btoa(String.fromCharCode(...new Uint8Array(32).fill(3))),
   SHOPEE_PARTNER_ID: '2001', SHOPEE_PARTNER_KEY: 'pk', TIKTOK_APP_KEY: 'ak', TIKTOK_APP_SECRET: 'as', ALLOWED_ORIGIN: ORIGIN, FRONTEND_URL: ORIGIN + '/',
-});
+}; e.TOKENS = mockNamespace(e, (...a) => fakeFetch(...a)); return e; };
 const ok = (data) => new Response(JSON.stringify(data));
 // Giả lập phản hồi của Shopee/TikTok
 async function fakeFetch(url, init = {}) {
@@ -152,9 +153,9 @@ describe('Worker API', () => {
     await handle(req(`/oauth/shopee/callback?state=${state}&code=C&shop_id=1`), env, fakeFetch);
     // ép hết hạn
     const { decryptJSON, encryptJSON } = await import('../src/crypto.js');
-    const rec = JSON.parse(env.SHOPS.m.get('shop:shopee:1'));
-    const tok = await decryptJSON(env.TOKEN_ENC_KEY, rec.enc); tok.access_exp = 0;
-    env.SHOPS.m.set('shop:shopee:1', JSON.stringify({ ...rec, enc: await encryptJSON(env.TOKEN_ENC_KEY, tok) }));
+    const dobj = env.TOKENS.inst.get('shopee:1'); // token nằm trong Durable Object của shop
+    const tok = await decryptJSON(env.TOKEN_ENC_KEY, dobj.state.enc); tok.access_exp = 0;
+    await dobj.put({ ...dobj.state, enc: await encryptJSON(env.TOKEN_ENC_KEY, tok) });
     calls = [];
     await call('/api/shops/shopee/1/products', { token: t });
     expect(calls[0].path).toBe('/api/v2/auth/access_token/get');

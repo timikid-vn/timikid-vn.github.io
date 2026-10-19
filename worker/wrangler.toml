@@ -28,3 +28,16 @@ id = "2e380072fdc1497482790229486dea14"
 [[services]]
 binding = "AUTH"
 service = "timikid-auth"
+
+# Token của sàn theo từng shop: Durable Object (SQLite — dùng được trên gói Free) làm khóa làm mới token
+[[durable_objects.bindings]]
+name = "TOKENS"
+class_name = "ShopTokens"
+
+[[migrations]]
+tag = "v1-shop-tokens"
+new_sqlite_classes = ["ShopTokens"]
+
+# Làm mới token sớm mỗi 3 giờ (Cron Trigger miễn phí) để kết nối không hết hạn khi ít dùng
+[triggers]
+crons = ["17 */3 * * *"]
