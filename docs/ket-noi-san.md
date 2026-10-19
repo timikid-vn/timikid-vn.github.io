@@ -167,3 +167,11 @@ Các khóa nội bộ (`TOKEN_ENC_KEY`, khóa ký phiên `AUTH_SIGNING_JWK`) đ�
 - **Ngành hàng** tự chọn theo `category_id` (đường dẫn tiếng Việt từ `product/get_category`) trên bảng phí Mall hoặc Shop thường. Không chắc chắn → mở bộ chọn ngành với gợi ý.
 - Worker chỉ gọi API đọc: `product/get_item_list`, `search_item`, `get_item_base_info`, `get_model_list`, `get_item_promotion`, `get_category`.
 - TikTok Shop: **tạm chưa hỗ trợ kết nối** (vẫn tính phí TikTok thủ công).
+
+## Token của sàn & làm mới (Durable Object)
+
+- Mỗi shop có 1 Durable Object `ShopTokens` (Shopee: `shopee:<shop_id>`, TikTok: `tiktok:<người bán>`) giữ token **mã hóa AES-GCM** và là nơi duy nhất làm mới token.
+- Tối đa **1 lần làm mới đang chạy / shop**: các request đồng thời chờ và dùng chung access token mới; refresh_token (dùng 1 lần) không bao giờ bị gửi 2 lần. Token mới được lưu **trước** khi trả về.
+- Sàn báo refresh_token hết hạn / không hợp lệ → shop bị đánh dấu **Cần kết nối lại** (không thử lại). Bấm “Kết nối Shopee” để kết nối lại; lỗi tạm thời (sàn bận, mạng) thì lần sau thử lại.
+- Cron `17 */3 * * *` (miễn phí) làm mới sớm token còn < 3,5 giờ (TikTok < 2 ngày) qua cùng khóa → kết nối không tự hết hạn khi ít dùng.
+- Token trong KV chỉ là bản gốc để DO nhận lần đầu (di chuyển dữ liệu tự động).

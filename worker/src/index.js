@@ -6,6 +6,8 @@ import { verifyAccess, DEFAULT_ISSUER } from '../../auth-worker/client/verify.js
 export const APP_ID = 'shop-connect';
 import * as shopee from './shopee.js';
 import * as tiktok from './tiktok.js';
+import { ShopTokens, doCall } from './tokens.js';
+export { ShopTokens };
 
 const STATE_TTL = 600;
 // Shopee chỉ chấp nhận redirect thuộc "Redirect URL Domain" khai trong Console. Nếu domain đó không phải Worker
@@ -41,34 +43,25 @@ const json = (env, req, data, status = 200) => new Response(JSON.stringify(data)
 const shopKey = (p, id) => `shop:${p}:${id}`;
 async function saveShop(env, rec) {
   const { tokens, ...meta } = rec;
-  await env.SHOPS.put(shopKey(rec.platform, rec.id), JSON.stringify({ ...meta, enc: await encryptJSON(env.TOKEN_ENC_KEY, tokens) }));
+  delete meta.enc;
+  const enc = await encryptJSON(env.TOKEN_ENC_KEY, tokens);
+  await env.SHOPS.put(shopKey(rec.platform, rec.id), JSON.stringify({ ...meta, enc }));
+  return enc;
 }
 async function loadShop(env, p, id) {
   const raw = await env.SHOPS.get(shopKey(p, id));
   if (!raw) return null;
   const { enc, ...meta } = JSON.parse(raw);
-  return { ...meta, tokens: await decryptJSON(env.TOKEN_ENC_KEY, enc) };
+  return { ...meta, enc, tokens: await decryptJSON(env.TOKEN_ENC_KEY, enc) };
 }
 const publicShop = ({ tokens, enc, cipher, ...m }) => m;
 
-/** Lấy access token còn hạn; tự refresh khi sắp hết hạn (và lưu lại token mới) */
-export async function validTokens(env, rec, fetchFn = fetch) {
-  const nowSec = Math.floor(Date.now() / 1000);
-  if (rec.tokens.access_exp > nowSec + 300) return rec.tokens;
-  const t = rec.platform === 'shopee'
-    ? await shopee.refresh(env, rec.tokens.refresh_token, rec.id, fetchFn)
-    : await tiktok.refresh(env, rec.tokens.refresh_token, fetchFn);
-  rec.tokens = { ...rec.tokens, ...t };
-  await saveShop(env, rec);
-  // TikTok: 1 token dùng chung cho mọi shop của cùng người bán → cập nhật các shop anh em
-  if (rec.platform === 'tiktok' && rec.sellerKey) {
-    const list = await env.SHOPS.list({ prefix: 'shop:tiktok:' });
-    for (const k of list.keys) {
-      const other = await loadShop(env, 'tiktok', k.name.split(':')[2]);
-      if (other && other.id !== rec.id && other.sellerKey === rec.sellerKey) { other.tokens = rec.tokens; await saveShop(env, other); }
-    }
-  }
-  return rec.tokens;
+/** Access token còn hạn — qua Durable Object của shop (khóa làm mới: tối đa 1 lần refresh đang chạy / shop).
+ *  Token trong KV chỉ là bản gốc để DO nhận lần đầu (di chuyển dữ liệu); sau đó DO là nguồn chuẩn. */
+export async function validTokens(env, rec) {
+  const r = await doCall(env, rec, 'access');
+  if (r.ok) return r.tokens;
+  throw Object.assign(new Error(r.reason || r.message || r.error), { code: r.error });
 }
 
 /** Phiên do timikid-auth cấp (JWT ES256), chỉ người đã được duyệt và có quyền vào app này */
@@ -127,17 +120,22 @@ export async function handle(req, env, fetchFn = fetch) {
         const tokens = await shopee.exchangeCode(env, code, shopId, fetchFn);
         const info = await shopee.shopInfo(env, tokens, shopId, fetchFn).catch(() => ({}));
         const old = await loadShop(env, 'shopee', shopId).catch(() => null);
-        await saveShop(env, { platform, id: String(shopId), name: info.name || `Shop ${shopId}`, region: info.region || 'VN', mall: old?.mall ?? false, connectedAt: Date.now(), tokens });
+        const rec = { platform, id: String(shopId), name: info.name || `Shop ${shopId}`, region: info.region || 'VN', mall: old?.mall ?? false, connectedAt: Date.now(), tokens };
+        const enc = await saveShop(env, rec);
+        await doCall(env, rec, 'set', { enc }); // token mới → DO (bỏ cờ cần kết nối lại)
       } else {
         const code = url.searchParams.get('code');
         if (!code) return back('thieu_code');
         const tokens = await tiktok.exchangeCode(env, code, fetchFn);
         const shops = await tiktok.authorizedShops(env, tokens, fetchFn);
         const sellerKey = tokens.open_id || randomId(8);
+        let enc = null, first = null;
         for (const s of shops) {
           const old = await loadShop(env, 'tiktok', s.id).catch(() => null);
-          await saveShop(env, { platform, id: String(s.id), name: s.name, region: s.region, code: s.code, cipher: s.cipher, sellerKey, mall: old?.mall ?? false, connectedAt: Date.now(), tokens });
+          first ||= { platform, id: String(s.id), sellerKey };
+          enc = await saveShop(env, { platform, id: String(s.id), name: s.name, region: s.region, code: s.code, cipher: s.cipher, sellerKey, mall: old?.mall ?? false, connectedAt: Date.now(), tokens });
         }
+        if (first) await doCall(env, first, 'set', { enc }); // 1 DO cho mọi shop của người bán
       }
       return back(`ok_${platform}`);
     } catch (e) { console.log('oauth error', e.message); return back('loi_doi_token'); }
@@ -161,7 +159,12 @@ export async function handle(req, env, fetchFn = fetch) {
   if (p === '/api/shops' && req.method === 'GET') {
     const list = await env.SHOPS.list({ prefix: 'shop:' });
     const shops = [];
-    for (const k of list.keys) { const raw = await env.SHOPS.get(k.name); if (raw) shops.push(publicShop(JSON.parse(raw))); }
+    for (const k of list.keys) {
+      const raw = await env.SHOPS.get(k.name); if (!raw) continue;
+      const rec = JSON.parse(raw);
+      const st = await doCall(env, rec, 'status').catch(() => ({}));
+      shops.push({ ...publicShop(rec), reauth: !!st.reauth });
+    }
     return J({ shops });
   }
 
@@ -172,7 +175,14 @@ export async function handle(req, env, fetchFn = fetch) {
     if (sub && req.method !== 'GET') return J({ error: 'method_not_allowed' }, 405); // chỉ đọc
     const rec = await loadShop(env, platform, id);
     if (!rec) return J({ error: 'shop_not_found' }, 404);
-    if (!isProducts && req.method === 'DELETE') { await env.SHOPS.delete(shopKey(platform, id)); return J({ ok: true }); }
+    if (!isProducts && req.method === 'DELETE') {
+      await env.SHOPS.delete(shopKey(platform, id));
+      // TikTok: DO dùng chung theo người bán → chỉ xóa khi không còn shop nào của người bán đó
+      let shared = false;
+      if (platform === 'tiktok' && rec.sellerKey) for (const k of (await env.SHOPS.list({ prefix: 'shop:tiktok:' })).keys) { const o = JSON.parse((await env.SHOPS.get(k.name)) || 'null'); if (o?.sellerKey === rec.sellerKey) shared = true; }
+      if (!shared) await doCall(env, rec, 'clear').catch(() => {});
+      return J({ ok: true });
+    }
     if (!isProducts && req.method === 'PATCH') {
       const b = await req.json().catch(() => ({}));
       if (typeof b.mall === 'boolean') rec.mall = b.mall;
@@ -180,7 +190,7 @@ export async function handle(req, env, fetchFn = fetch) {
     }
     if (!isProducts) return J({ shop: publicShop(rec) });
     try {
-      const tokens = await validTokens(env, rec, fetchFn);
+      const tokens = await validTokens(env, rec);
       if (platform === 'shopee') {
         const getCats = async () => {
           let cats = JSON.parse((await env.SHOPS.get('cache:shopee:categories')) || 'null');
@@ -198,7 +208,10 @@ export async function handle(req, env, fetchFn = fetch) {
       if (pid) return J({ product: await tiktok.productDetail(env, tokens, rec.cipher, pid, fetchFn) });
       return J(await tiktok.listProducts(env, tokens, rec.cipher, { pageToken: url.searchParams.get('next') || '' }, fetchFn));
     } catch (e) {
-      console.log('platform error', platform, String(e.message || e).slice(0, 200));
+      console.log('platform error', platform, String(e.message || e).slice(0, 200).replace(/[A-Za-z0-9]{24,}/g, '…'));
+      if (e.code === 'reauth_required') return J({ error: 'reauth_required', message: `Kết nối ${platform === 'shopee' ? 'Shopee' : 'TikTok Shop'} của shop này đã hết hạn. Hãy bấm “Kết nối ${platform === 'shopee' ? 'Shopee' : 'TikTok Shop'}” để kết nối lại.` }, 502);
+      if (e.code === 'refresh_failed' || e.code === 'internal') return J({ error: 'platform_error', message: 'Chưa làm mới được kết nối với sàn (sàn bận hoặc lỗi mạng). Thử lại sau ít giây.' }, 502);
+      if (e.code === 'no_tokens') return J({ error: 'reauth_required', message: 'Shop chưa có token — hãy kết nối lại.' }, 502);
       const msg = platform === 'shopee' ? shopee.friendlyError(e) : String(e.message || e);
       return J({ error: /hết hạn/.test(msg) ? 'reauth_required' : 'platform_error', message: msg }, 502);
     }
@@ -206,4 +219,24 @@ export async function handle(req, env, fetchFn = fetch) {
   return J({ error: 'not_found' }, 404);
 }
 
-export default { fetch: (req, env) => handle(req, env) };
+/** Cron: làm mới token sớm cho mọi shop (qua cùng khóa DO) để kết nối không bao giờ hết hạn khi ít dùng */
+export async function refreshAll(env) {
+  const out = [], seen = new Set();
+  const list = await env.SHOPS.list({ prefix: 'shop:' });
+  for (const k of list.keys) {
+    const raw = await env.SHOPS.get(k.name); if (!raw) continue;
+    const rec = JSON.parse(raw);
+    const key = rec.platform === 'tiktok' ? `tiktok:${rec.sellerKey || rec.id}` : `shopee:${rec.id}`;
+    if (seen.has(key)) continue; seen.add(key);
+    if (!configured(env)[rec.platform]) continue;
+    const r = await doCall(env, rec, 'cron').catch((e) => ({ ok: false, error: 'internal', message: e.message }));
+    out.push({ key, ok: !!r.ok, refreshed: !!r.refreshed, error: r.error || null });
+  }
+  console.log('cron refresh', JSON.stringify(out));
+  return out;
+}
+
+export default {
+  fetch: (req, env) => handle(req, env),
+  scheduled: (event, env, ctx) => ctx.waitUntil(refreshAll(env)),
+};
