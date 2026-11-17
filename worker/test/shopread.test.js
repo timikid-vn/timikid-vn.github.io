@@ -31,7 +31,7 @@ beforeEach(() => {
 describe('ShopRead (RPC chỉ đọc cho app khác)', () => {
   it('chỉ cho phép API đọc trong danh sách; không có API ghi', async () => {
     await seed({ access_token: 'A', refresh_token: 'R', access_exp: now() + 3600 });
-    for (const p of ['/api/v2/product/update_price', '/api/v2/product/update_item', '/api/v2/auth/access_token/get', '/api/v2/product/delete_item'])
+    for (const p of ['/api/v2/product/update_price', '/api/v2/product/update_item', '/api/v2/auth/access_token/get', '/api/v2/product/delete_item', '/api/v2/order/get_order_list', '/api/v2/order/get_order_detail', '/api/v2/payment/get_escrow_detail'])
       expect((await shopeeRead(env, '272596844', p, {}, fakeFetch)).error).toBe('path_not_allowed');
     expect([...READ_PATHS].every((p) => /\/(get_|search_)/.test(p))).toBe(true);
     expect(calls.length).toBe(0);

@@ -12,8 +12,7 @@ export const READ_PATHS = new Set([
   '/api/v2/product/get_model_list',
   '/api/v2/product/get_item_extra_info',
   '/api/v2/product/search_item',
-  '/api/v2/order/get_order_list',
-  '/api/v2/order/get_order_detail',
+  // Đơn hàng (dữ liệu người mua) CHƯA mở: thêm lại khi có tính năng cần và được duyệt.
 ]);
 export const RECONNECT_URL = 'https://timikid-vn.github.io/';
 const redact = (s) => String(s || '').slice(0, 200).replace(/[A-Za-z0-9]{24,}/g, '…');
