@@ -5,7 +5,7 @@
 #   SHOPEE_PARTNER_KEY, TIKTOK_APP_SECRET
 # Đăng nhập: tài khoản chung timikid-auth (xác minh JWT bằng khóa công khai qua service binding AUTH).
 name = "timikid-shop-connect"
-main = "src/index.js"
+main = "src/main.js"   # = index.js (giữ nguyên) + entrypoint RPC ShopRead (src/shopread.js)
 workers_dev = true
 account_id = "221d1e5c092be128eec2e830e6652c06"
 compatibility_date = "2026-10-01"
